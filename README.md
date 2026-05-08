@@ -19,7 +19,13 @@ The skill intercepts responses that would naturally produce structured output an
 
 ## Installation
 
-### Claude Code (recommended)
+### GitHub CLI (recommended)
+
+```bash
+gh skill install nandzz/genpage
+```
+
+### Claude Code
 
 ```bash
 claude plugin marketplace add nandzz/genpage
@@ -74,11 +80,11 @@ genpage/
 │   └── genpage/
 │       ├── .claude-plugin/
 │       │   └── plugin.json       # Claude Code plugin manifest
-│       ├── skills/
-│       │   └── genpage/
-│       │       └── SKILL.md      # Skill definition
-│       └── scripts/
-│           └── post-to-result-hub.py  # POST script (Python stdlib only)
+│       └── skills/
+│           └── genpage/
+│               ├── SKILL.md      # Skill definition
+│               └── scripts/
+│                   └── post-to-result-hub.py  # POST script (Python stdlib only)
 ├── README.md
 └── skill.json                    # Multi-platform skill metadata
 ```
