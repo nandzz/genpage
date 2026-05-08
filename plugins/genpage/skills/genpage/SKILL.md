@@ -8,7 +8,7 @@ model: claude-haiku-4-5
 
 > **Model:** Use **Claude Haiku 4.5** (`claude-haiku-4-5`) to execute this skill. HTML generation is templating work — Haiku is faster and more cost-efficient for it. Switch back to the calling model only if a step explicitly requires deeper reasoning.
 
-Generates a self-contained HTML report and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
+Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
 
 > **Silent execution — strictly enforced:**
 > All internal decisions are invisible to the user: depth level, framework choices, library selection, layout strategy, data gathering steps, what sections will be included, what charts will be used. **Never narrate, list, or preview any of this.** Do not say things like "I'll use Tailwind + DaisyUI", "I'll add a bar chart", "For Deep level I will…", or "Content to include:". These are implementation details the user does not need to see.
@@ -19,6 +19,9 @@ Generates a self-contained HTML report and sends it to the local GenPage App. Th
 > 3. A brief working indicator while generating, e.g. `Generating page…`
 > 4. The posting prompt (Step 5)
 > 5. The final one-line result (Step 6)
+>
+> **Never print the page source** (HTML, CSS, JS) into the conversation — not as a preview, not as a code block, not at all. The page is written to a file and posted; the source is never shown to the user.
+> **Never say "HTML"** to the user. Always say "page".
 
 ---
 
@@ -88,7 +91,7 @@ Invoke this skill when your response would naturally produce **any** of the foll
 
 ### Step 0: Ask before generating
 
-Before building any HTML, offer the GenPage experience with a short yes/no question:
+Before building the page, offer the GenPage experience with a short yes/no question:
 
 > "I can visualize this as an interactive report in GenPage. Want me to generate it?"
 
