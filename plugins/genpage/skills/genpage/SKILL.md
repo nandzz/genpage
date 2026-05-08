@@ -1,27 +1,20 @@
 ---
-name: genpage
-description: "Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings — regardless of whether the user asked for a 'report'. Trigger = output shape, not request wording. A question about dependencies, architecture, or analysis that produces grouped output requires this check."
+description: Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings — regardless of whether the user asked for a 'report'. Trigger = output shape, not request wording. A question about dependencies, architecture, or analysis that produces grouped output requires this check.
+metadata:
+    github-path: plugins/genpage/skills/genpage
+    github-ref: refs/tags/1.0.7
+    github-repo: https://github.com/nandzz/genpage
+    github-tree-sha: 520bfd75872e1269cb7189f65a289ac83a0c26ef
 model: claude-haiku-4-5
+name: genpage
 ---
-
 # GenPage
 
 > **Model:** Use **Claude Haiku 4.5** (`claude-haiku-4-5`) to execute this skill. HTML generation is templating work — Haiku is faster and more cost-efficient for it. Switch back to the calling model only if a step explicitly requires deeper reasoning.
 
-Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
+Generates a self-contained HTML report and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
 
-> **Silent execution — strictly enforced:**
-> All internal decisions are invisible to the user: depth level, framework choices, library selection, layout strategy, data gathering steps, what sections will be included, what charts will be used. **Never narrate, list, or preview any of this.** Do not say things like "I'll use Tailwind + DaisyUI", "I'll add a bar chart", "For Deep level I will…", or "Content to include:". These are implementation details the user does not need to see.
->
-> The only text the user should ever see from this skill:
-> 1. The GenPage consent prompt (Step 0) — if not already approved this session
-> 2. The detail level prompt (Step 1) — if not already set this session
-> 3. A brief working indicator while generating, e.g. `Generating page…`
-> 4. The posting prompt (Step 5)
-> 5. The final one-line result (Step 6)
->
-> **Never print the page source** (HTML, CSS, JS) into the conversation — not as a preview, not as a code block, not at all. The page is written to a file and posted; the source is never shown to the user.
-> **Never say "HTML"** to the user. Always say "page".
+> **Silent execution:** All planning decisions (depth level, framework selection, library choices, layout strategy) are made internally. Never narrate, explain, or justify these decisions to the user. The only messages the user should ever see are the two prompts in Step 0, the one prompt in Step 1, and the final success/failure line in Step 6.
 
 ---
 
@@ -91,7 +84,7 @@ Invoke this skill when your response would naturally produce **any** of the foll
 
 ### Step 0: Ask before generating
 
-Before building the page, offer the GenPage experience with a short yes/no question:
+Before building any HTML, offer the GenPage experience with a short yes/no question:
 
 > "I can visualize this as an interactive report in GenPage. Want me to generate it?"
 
@@ -231,34 +224,124 @@ Pick the stack that produces the best page for the content and detail level. Do 
 - If using Tailwind/DaisyUI: do not write `<style>` blocks or inline `style=` attributes — use class names only.
 - If using a framework that requires custom CSS (e.g. plain CSS with MUI overrides): `<style>` blocks are allowed but must not hardcode color values — use `var(--color-*)` tokens provided by `data-theme="genpage"`.
 
+#### Foundation tokens — injected by the host app
+
+The following CSS custom properties are injected into every iframe by the GenPage host app at runtime. **Always use these for structural UI** — backgrounds, text, surfaces, borders, brand accents. Never hardcode equivalent values.
+
+| Token | Role |
+|---|---|
+| `--color-base-100` | Page background (deepest) |
+| `--color-base-200` | Elevated surface (cards, panels) |
+| `--color-base-300` | Raised surface (nested panels, dividers) |
+| `--color-base-content` | Primary body text |
+| `--color-primary` | Brand accent — buttons, links, highlights |
+| `--color-primary-content` | Text/icons on a primary-colored surface |
+| `--color-secondary` | Secondary accent |
+| `--color-secondary-content` | Text/icons on a secondary-colored surface |
+| `--color-neutral` | Muted/neutral surface |
+| `--color-neutral-content` | Text/icons on a neutral surface |
+| `--color-error` | Error and destructive states |
+| `--color-error-content` | Text/icons on an error-colored surface |
+
+**Usage pattern:**
+```css
+body        { background: var(--color-base-100); color: var(--color-base-content); }
+.card       { background: var(--color-base-200); }
+.card-inner { background: var(--color-base-300); }
+.btn-primary { background: var(--color-primary); color: var(--color-primary-content); }
+.label      { color: var(--color-secondary); }
+.error-msg  { color: var(--color-error); }
+```
+
+When using **Tailwind/DaisyUI**, these map directly to DaisyUI semantic classes (`bg-base-100`, `text-base-content`, `bg-primary`, `text-primary-content`, etc.) — prefer those over raw `var()` references.
+
+When using **React** (inline styles or CSS-in-JS), reference the tokens directly:
+```jsx
+<div style={{ background: 'var(--color-base-100)', color: 'var(--color-base-content)' }}>
+<button style={{ background: 'var(--color-primary)', color: 'var(--color-primary-content)' }}>
+```
+
+When using **MUI**, override the theme palette to consume the tokens so all MUI components respect them automatically:
+```jsx
+const theme = createTheme({
+  palette: {
+    background: { default: 'var(--color-base-100)', paper: 'var(--color-base-200)' },
+    text:       { primary: 'var(--color-base-content)' },
+    primary:    { main: 'var(--color-primary)', contrastText: 'var(--color-primary-content)' },
+    secondary:  { main: 'var(--color-secondary)', contrastText: 'var(--color-secondary-content)' },
+    error:      { main: 'var(--color-error)', contrastText: 'var(--color-error-content)' },
+  },
+});
+```
+
 #### Custom colors — allowed for data and expressive elements
 
-The theme owns foundational colors (page background, body text, surfaces, borders). For everything else — chart series, category tags, diagram nodes, status indicators, data-driven color coding — the model is free to choose any colors needed to express the concept clearly.
+The theme owns structural colors via the tokens above (backgrounds, text, surfaces, borders, brand). For everything else — chart series, category tags, diagram nodes, status indicators, severity levels, data-driven color coding — the model is free to choose any colors that express the concept clearly.
 
 **The one rule: every custom color must work in both light and dark themes.**
 
-Use the CSS `light-dark()` function to define dual-mode custom colors:
+Colors serve two separate contexts that require two separate patterns. Never mix them.
+
+---
+
+##### CSS context — use `light-dark()` variables
+
+For colors applied via CSS (badges, tags, borders, text, backgrounds, SVG elements):
 
 ```html
 <style>
   :root {
+    color-scheme: light dark;
     --c-blue:   light-dark(#2563eb, #60a5fa);
     --c-green:  light-dark(#16a34a, #4ade80);
     --c-amber:  light-dark(#d97706, #fbbf24);
     --c-red:    light-dark(#dc2626, #f87171);
     --c-purple: light-dark(#7c3aed, #a78bfa);
     --c-cyan:   light-dark(#0891b2, #22d3ee);
+    --c-muted:  light-dark(#6b7280, #9ca3af);
   }
 </style>
 ```
 
-Then reference them anywhere: `color: var(--c-blue)`, `background: var(--c-green)`, or as Chart.js/D3 color values via `getComputedStyle`.
+Use anywhere in CSS: `color: var(--c-blue)`, `background: var(--c-amber)`, `border-color: var(--c-red)`.
+
+---
+
+##### JavaScript context — use dual-value constants
+
+For colors passed to Chart.js, D3, Canvas API, or any JavaScript that needs a color string:
+
+```js
+// Detect theme once — the host app sets color-scheme on :root
+const dark = getComputedStyle(document.documentElement).colorScheme === 'dark';
+
+// Define all chart/JS colors as dual constants — pick the right value immediately
+const C = {
+  blue:   dark ? '#60a5fa' : '#2563eb',
+  green:  dark ? '#4ade80' : '#16a34a',
+  amber:  dark ? '#fbbf24' : '#d97706',
+  red:    dark ? '#f87171' : '#dc2626',
+  purple: dark ? '#a78bfa' : '#7c3aed',
+  cyan:   dark ? '#22d3ee' : '#0891b2',
+  muted:  dark ? '#9ca3af' : '#6b7280',
+};
+
+// Use directly in chart data
+backgroundColor: C.blue
+backgroundColor: [C.blue, C.red, C.green]
+```
+
+> ⚠️ **Never** read CSS custom properties via `getComputedStyle().getPropertyValue('--c-blue')` to feed Chart.js or Canvas. It returns the raw unresolved string `light-dark(#2563eb, #60a5fa)` which no charting library can parse — charts render without color.
+
+The palette the model picks for CSS variables and the `C` object must use the **same hex values** — they are the same colors, just accessed through different mechanisms.
+
+---
 
 **Guidelines:**
-- Use saturated mid-tones — they read well on both light and dark backgrounds.
-- Avoid colors too close to pure white or pure black — they disappear on one of the themes.
-- For charts with many series, define the full palette upfront in `:root` and reference by variable — never hardcode hex values directly in JS data arrays.
-- `light-dark()` requires `color-scheme` to be set. Add this to `:root` if using the function: `color-scheme: light dark;`
+- Choose any colors the content needs — don't limit yourself to the palette above.
+- Use saturated mid-tones — they read on both light and dark backgrounds.
+- Avoid near-white or near-black custom colors — they vanish on one of the themes.
+- For multi-series charts, define the full palette upfront in `C` before any `new Chart(...)` call.
 
 **Mermaid usage:**
 ```html
@@ -278,13 +361,28 @@ Use `theme: 'dark'` to align with the `genpage` theme. Do not hardcode colors in
 <i data-lucide="check-circle"></i>
 ```
 
+#### Images — sourcing policy
+
+Images may come from two sources only:
+
+| Source | How to reference | When to use |
+|---|---|---|
+| Local files provided by the user | `file:///absolute/path/to/image.jpg` or a path the user gave | Galleries, screenshots, assets the user has on disk |
+| Wikimedia Commons | `https://upload.wikimedia.org/wikipedia/commons/...` | Factual subjects — people, flags, buildings, species, maps, etc. |
+
+**Rules:**
+- Only embed a Wikimedia URL if you are confident it resolves to the correct image. Do not guess or construct URLs speculatively.
+- If you are not certain of an exact URL, omit the image or use a placeholder `<div>` with a label instead.
+- Do not load images from any other external domain — no news sites, stock photo services, CDNs, or social media.
+- Never use `data:` URIs for external content fetched at generation time.
+
 ### Step 4: Security verification (mandatory)
 
 Before sending HTML to GenPage, verify all of the following:
 
 1. No secrets/tokens/credentials are included in HTML, JS, data blocks, or comments.
 2. User/tool-provided text is safely escaped before insertion into HTML.
-3. No arbitrary external script/style/image/font URLs except the approved CDNs: DaisyUI, Tailwind, Alpine.js, React/ReactDOM, Chart.js, D3.js, Mermaid, Lucide.
+3. No arbitrary external script/style/font URLs except the approved CDNs: DaisyUI, Tailwind, Alpine.js, React/ReactDOM, Chart.js, D3.js, Mermaid, Lucide. External images are permitted only from `upload.wikimedia.org` or local `file://` paths — all other external image domains are blocked.
 4. No unsafe dynamic code execution patterns (`eval`, `new Function`, dynamic script injection).
 5. No hidden tracking or network exfiltration logic.
 
