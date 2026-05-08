@@ -94,25 +94,16 @@ Consent cache policy:
 
 If the user declines, respond with plain markdown and stop. Only proceed to Step 1 if they confirm or explicitly requested GenPage.
 
-### Step 1: Ask detail level (token control)
+### Step 1: Assess and plan
 
-Before gathering data, ask the user how much detail they want so they can control token usage.
+Before writing any HTML, evaluate the data in hand and decide autonomously:
 
-Suggested prompt:
-> "How detailed should the GenPage report be: Lean, Standard, or Deep?"
+**Depth** — choose based on data richness, not user instruction:
+- **Lean**: single metric or flat list; one section, no charts, minimal markup
+- **Standard**: multi-field data with some relationships; summary + key sections, up to 2 charts
+- **Deep**: rich/complex data (many entities, comparisons, hierarchies, trends); full breakdown, multiple sections, charts, drill-downs
 
-If the user does not specify, default to **Standard**.
-
-Detail levels:
-- **Lean (lowest token usage):** one summary section, key metrics only, max 1 chart, no drill-down sections, concise labels/text.
-- **Standard (balanced):** summary + highlights + selected details, up to 2 charts, limited expandable detail.
-- **Deep (highest token usage):** full breakdown, multiple sections/charts, comparisons, drill-down views, richer annotations.
-
-Apply the selected level to:
-- data collection depth
-- number of sections and charts
-- interactivity complexity
-- length of explanatory text
+**Frameworks** — pick only what the content genuinely needs (see Step 3 for the full decision matrix). Do not ask the user which libraries to use.
 
 ### Step 2: Gather report data
 
@@ -191,38 +182,62 @@ Semantic token assignment (how to pick the right class):
 
 Visibility rule: prefer these semantic classes over raw Tailwind color classes (`text-blue-500`, etc.) — the App theme controls the actual values, keeping reports consistent.
 
-#### Interactivity — use when it earns its place
+#### Framework selection — model decides autonomously
 
-For static layouts (Lean mode, flat tables, single metrics): **do not load React or Chart.js.** Plain HTML + Tailwind/DaisyUI is sufficient and generates fewer tokens.
+The model selects libraries based on what the content requires. Do not ask the user. Load only what earns its place — every extra CDN is a network round-trip inside the iframe.
 
-Only add these when genuinely needed:
+**Always included** (already in the mandatory head template):
+- **Tailwind CSS** — layout, spacing, typography
+- **DaisyUI** — component classes (`card`, `badge`, `stat`, `table`, `btn`, `alert`, `collapse`, tabs via radio inputs)
+
+**Load on demand — pick the right tool for the job:**
+
+| Need | Best fit | CDN |
+|---|---|---|
+| Tabs, toggles, filters, show/hide — simple | DaisyUI radio/checkbox patterns (zero JS) | already loaded |
+| Tabs, toggles, filters — dynamic or data-driven | Alpine.js | `https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js` |
+| Complex stateful UI (multi-step, cross-component state) | React + ReactDOM | see below |
+| Bar, line, pie, donut, radar, area charts | Chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4` |
+| Force graphs, treemaps, heatmaps, custom SVG data-viz | D3.js | `https://cdn.jsdelivr.net/npm/d3@7` |
+| Flowcharts, sequence diagrams, ER diagrams, git graphs, state machines | Mermaid | `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js` |
+| Icons (status indicators, labels, UI polish) | Lucide | `https://unpkg.com/lucide@latest` |
+
+**CDN snippets:**
 
 ```html
-<!-- Only for interactivity / state -->
+<!-- Alpine.js — lightweight reactivity -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+
+<!-- React — only for complex stateful UIs -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-<!-- Only for quantitative charts -->
+<!-- Chart.js — quantitative charts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 
-<!-- Only for diagrams (flows, sequences, trees, ER) -->
+<!-- D3.js — advanced / custom data visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+<!-- Mermaid — diagram definitions rendered as SVG -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
 ```
 
-**Good reasons to load React:**
-- The report has tabs, toggles, or filters that switch visible content
-- Comparing two states (before/after, pass/fail) benefits from a toggle
-- Expandable drill-down rows that can't be done with a `<details>` element
+**Decision rules:**
 
-**Good reasons to load Chart.js:**
-- The data has a quantitative distribution, trend, or comparison that a table can't communicate
+- Prefer DaisyUI's zero-JS patterns (radio tabs, `<details>` collapse, stat cards) before reaching for Alpine or React.
+- Prefer Alpine.js over React when all that's needed is show/hide, x-data toggling, or simple loops.
+- Use React only when the UI has cross-component state that Alpine can't cleanly express.
+- Use Chart.js for standard quantitative charts. Use D3 only when Chart.js cannot express the visualization (force-directed graphs, treemaps, custom path shapes).
+- Use Mermaid for any graph-shaped data — it's far more token-efficient than hand-crafting SVG or canvas.
+- Load Lucide only when icons meaningfully aid scannability (status rows, category labels, navigation).
+- **Lean depth**: Tailwind + DaisyUI only. No JS libraries unless the data is graph-shaped (Mermaid only).
+- **Standard depth**: add Chart.js or Mermaid if the data warrants it; Alpine for any interactive pattern.
+- **Deep depth**: use the full palette as needed — React, D3, Mermaid, Chart.js, Lucide — but only what the content justifies.
 
-**Good reasons to load Mermaid:**
-- The data is graph-shaped: dependency trees, call chains, architecture layers, state machines, ER diagrams, git graphs, sequence flows
-- A table or list would flatten relationships that have direction or hierarchy
-- Mermaid is more token-efficient than generating SVG or canvas code — the model writes a short text definition, Mermaid renders it
-
-Mermaid usage pattern:
+**Mermaid usage:**
 ```html
 <script>mermaid.initialize({ startOnLoad: true, theme: 'dark' });</script>
 <div class="mermaid">
@@ -231,15 +246,16 @@ graph TD
   B --> C[Result]
 </div>
 ```
-
 Use `theme: 'dark'` to stay consistent with the `genpage` DaisyUI theme. Do not hardcode colors inside Mermaid definitions.
 
-**Do not add interactivity when:**
-- A single well-structured static layout already tells the full story
-- The only data is a flat list or a single metric
-- The interaction would be decoration rather than navigation
-
-DaisyUI provides many interactive-looking patterns (tabs via radio inputs, collapse via `<details>`, badges, stats) that require **zero JavaScript** — prefer these over React for simple navigation.
+**Lucide usage:**
+```html
+<script>
+  lucide.createIcons();
+</script>
+<!-- in markup: -->
+<i data-lucide="check-circle" class="text-success"></i>
+```
 
 ### Step 4: Security verification (mandatory)
 
@@ -247,7 +263,7 @@ Before sending HTML to GenPage, verify all of the following:
 
 1. No secrets/tokens/credentials are included in HTML, JS, data blocks, or comments.
 2. User/tool-provided text is safely escaped before insertion into HTML.
-3. No arbitrary external script/style/image/font URLs except the allowed React/ReactDOM/Chart.js/Mermaid CDNs.
+3. No arbitrary external script/style/image/font URLs except the approved CDNs: DaisyUI, Tailwind, Alpine.js, React/ReactDOM, Chart.js, D3.js, Mermaid, Lucide.
 4. No unsafe dynamic code execution patterns (`eval`, `new Function`, dynamic script injection).
 5. No hidden tracking or network exfiltration logic.
 
