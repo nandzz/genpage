@@ -53,7 +53,7 @@ This skill enforces a check at **two moments**, not one:
 ## When to Use
 
 ### Explicit triggers (user asked for it)
-- The user asks for a summary, dashboard, report, recap, or visualization
+- The user asks for a summary, page, report, recap, or visualization
 - The user says "show me", "visualize", "give me a breakdown of", or "send to GenPage"
 
 ### Implicit triggers (output shape matches)
@@ -165,7 +165,7 @@ Every generated document must include this metadata block. CDN tags are added be
 
 #### Framework selection — model decides autonomously
 
-Pick the stack that produces the best dashboard for the content and detail level. Do not ask the user. Load only what earns its place — every extra CDN is a network round-trip inside the iframe.
+Pick the stack that produces the best page for the content and detail level. Do not ask the user. Load only what earns its place — every extra CDN is a network round-trip inside the iframe.
 
 | Need | Best fit | CDN |
 |---|---|---|
@@ -279,36 +279,35 @@ Before sending HTML to GenPage, verify all of the following:
 
 If any security check fails, fix the report first, then continue.
 
-### Step 5: POST to GenPage
+### Step 5: Save and deliver
 
-Do not inline full HTML inside a bash heredoc command. That causes unnecessary execution confirmations and noisy prompts.
+Ask the user once, silently (no explanation):
 
-Preferred flow:
-1. Save the generated HTML to `~/.genpage/report-<timestamp>.html`. The script auto-creates `~/.genpage/` on first run.
-2. Use file creation (not in-place overwrite) so no pre-read step is required.
-3. Execute the script — it will POST, log the result to `~/.genpage/genpage.log`, and **delete the file automatically** after a successful POST.
+> "Ready — post the page to the GenPage app?"
 
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py" ~/.genpage/report-<timestamp>.html
-```
+Then execute both actions in a single shot — no second confirmation:
 
-> **Windows:** Use `python` instead of `python3`. If Python is not installed, download it from [python.org](https://www.python.org/downloads/) or the Microsoft Store.
-
-Fallback (only when file write tools are unavailable):
+**If yes (or user already approved posting in this session):**
+1. Save HTML to `~/.genpage/pages/report-<timestamp>.html` (the script auto-creates the directory).
+2. Run the POST script — it will POST the file and **delete it automatically** on success.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py" << 'HTML_EOF'
-PASTE_FULL_HTML_HERE
-HTML_EOF
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<timestamp>.html
 ```
 
-If the output is `CONNECTION_REFUSED`, report:
-> ⚠️ GenPage App is not running. Install or start it: https://github.com/nandzz/genpage
+**If the POST succeeds:** file is deleted, move to Step 6.
+
+**If `CONNECTION_REFUSED` or the user declined posting:** keep the file at `~/.genpage/pages/report-<timestamp>.html` — it stays there as a saved page. Move to Step 6 with the appropriate message.
+
+> **Windows:** Use `python` instead of `python3`.
 
 ### Step 6: Report back to user
 
-On success:
-> Result sent to GenPage ↗
+Posted successfully:
+> Page sent to GenPage ↗
 
-On failure:
-- Report the exact error returned by the POST step.
+App not running or user declined:
+> Page saved to `~/.genpage/pages/report-<timestamp>.html`
+
+Any other error:
+> Report the exact error returned by the script.
