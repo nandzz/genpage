@@ -49,6 +49,8 @@ If you can't say it in 5 words without leaking content, say nothing.
 
 ### FORBIDDEN — never write any of this to the user
 
+- ❌ **Narrating the skill itself.** Never say "Step 0:", "Step 1:", "the skill says", "I need to follow the skill's instructions", "the genpage skill has been loaded", "according to the skill", or any reference to the skill's internal mechanics. The user must not know steps exist.
+- ❌ **Restating questions as plain text before asking them.** Don't write `Step 0: Ask if they want a report` followed by the question. Just ask the question — once — through the structured prompt.
 - ❌ Plans, outlines, or "Let me create a comprehensive report with…"
 - ❌ Lists of sections, charts, or libraries you intend to use
 - ❌ "I'll use Tailwind + DaisyUI + Chart.js…"
@@ -158,11 +160,21 @@ Invoke this skill when your response would naturally produce **any** of the foll
 
 ### Step 0: Ask before generating
 
-Before building any HTML, offer the GenPage experience with a short yes/no question:
+Before building any page, offer the GenPage experience with a short yes/no question.
 
+**Always use the host platform's structured question UI when one exists.** Examples:
+- VS Code / GitHub Copilot — the ask-questions tool with predefined options.
+- Claude Code — the AskUserQuestion tool.
+- Any other host — its native interactive prompt component.
+
+If and only if no structured prompt is available, fall back to a plain inline question.
+
+**Never** write a narrating sentence before the prompt (no "I'll ask if you want…", no "Step 0: …"). Just emit the question through the structured UI.
+
+**Question text:**
 > "I can visualize this as an interactive report in GenPage. Want me to generate it?"
 
-Options: **"Yes, send to GenPage"** / **"No, keep it as text"**
+**Options:** **"Yes, send to GenPage"** / **"No, keep it as text"**
 
 If the user explicitly requested GenPage (for example: "send to GenPage", "use GenPage", or "generate it in GenPage"), skip this prompt and proceed automatically.
 
@@ -176,9 +188,12 @@ If the user declines, respond with plain markdown and stop. Only proceed to Step
 
 ### Step 1: Ask detail level, then assess
 
-Ask the user how much detail they want:
+Ask the user how much detail they want — again via the host's **structured question UI** with predefined options. No narrating sentence before the question.
 
+**Question text:**
 > "How detailed should the GenPage report be: Lean, Standard, or Deep?"
+
+**Options:** **Lean** / **Standard** / **Deep**
 
 If the user does not specify, default to **Standard**.
 
