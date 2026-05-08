@@ -94,16 +94,19 @@ Consent cache policy:
 
 If the user declines, respond with plain markdown and stop. Only proceed to Step 1 if they confirm or explicitly requested GenPage.
 
-### Step 1: Assess and plan
+### Step 1: Ask detail level, then assess
 
-Before writing any HTML, evaluate the data in hand and decide autonomously:
+Ask the user how much detail they want:
 
-**Depth** — choose based on data richness, not user instruction:
-- **Lean**: single metric or flat list; one section, no charts, minimal markup
-- **Standard**: multi-field data with some relationships; summary + key sections, up to 2 charts
-- **Deep**: rich/complex data (many entities, comparisons, hierarchies, trends); full breakdown, multiple sections, charts, drill-downs
+> "How detailed should the GenPage report be: Lean, Standard, or Deep?"
 
-**Frameworks** — pick only what the content genuinely needs (see Step 3 for the full decision matrix). Do not ask the user which libraries to use.
+If the user does not specify, default to **Standard**.
+
+- **Lean**: one summary section, key metrics only, no drill-downs, minimal markup
+- **Standard**: summary + highlights + selected details, up to 2 charts, limited expandable detail
+- **Deep**: full breakdown, multiple sections/charts, comparisons, drill-down views, richer annotations
+
+Once the level is set, choose frameworks autonomously based on the data (see Step 3). Do not ask the user which libraries to use.
 
 ### Step 2: Gather report data
 
@@ -123,24 +126,21 @@ Collect the minimum data needed to create a useful visual report.
 
 Create a complete, self-contained HTML document. The body/layout is unconstrained: choose any structure needed to represent the result clearly.
 
-#### Document metadata
-
-The mandatory `<head>` template above already includes all required metadata. Fill in the placeholders:
-- `<one-line summary of the report content>` — concise, human-readable description of what the report covers
-- `<report title>` — short, descriptive title for this specific report
-- `<title>` must always follow the pattern `<report title> — GenPage`. Never leave it blank or generic.
-
-Do not add tracking pixels, analytics scripts, or third-party meta tags.
-
-#### Styling — Tailwind CSS + DaisyUI (mandatory)
+#### Styling — framework is the model's choice
 
 The HTML is rendered inside an **iframe**. It shares nothing with the host app — no stylesheets, no scripts, no variables. Every dependency must be included in the document itself.
 
-**Do not write `<style>` blocks or inline `style=` attributes.** Use class names only.
+##### The only hard constraint
+
+`data-theme="genpage"` must always be set on `<html>`. The host app injects all color token values for this theme at runtime. Do not override or remove this attribute.
+
+```html
+<html lang="en" data-theme="genpage">
+```
 
 ##### Mandatory `<head>` template
 
-Every generated document must open with exactly this `<head>` block. Do not omit or reorder these tags:
+Every generated document must include this metadata block. CDN tags are added below it based on what the model selects:
 
 ```html
 <!DOCTYPE html>
@@ -155,60 +155,41 @@ Every generated document must open with exactly this `<head>` block. Do not omit
   <meta property="og:type" content="article">
   <title><report title> — GenPage</title>
 
-  <!-- Styling (always required) -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- add chosen CDN tags here -->
 </head>
 ```
 
-`data-theme="genpage"` is **always** set on `<html>`. The host app injects all CSS variable values for this theme at runtime — the model never knows or sets them. Do not override or replace this attribute.
-
-Styling rules:
-1. Use Tailwind utility classes for layout and spacing (`flex`, `gap-4`, `p-3`, `grid`, `w-full`, etc.).
-2. Use DaisyUI component classes for UI patterns (`table table-zebra`, `badge badge-success`, `btn btn-primary`, `card`, `stat`, `alert`, etc.).
-3. Do not write `<style>` blocks. Do not use inline `style=` attributes. Do not hardcode color values anywhere.
-4. Do not introduce custom CSS tokens or variables — the App owns the theme.
-5. Keep the document self-contained — no additional CSS files.
-
-Semantic token assignment (how to pick the right class):
-- **Primary** (`btn-primary`, `text-primary`, `bg-primary`) — main actions, key highlights, CTAs
-- **Secondary** (`btn-secondary`, `text-secondary`) — supporting actions, secondary labels
-- **Accent** (`text-accent`, `bg-accent`) — emphasis, callouts, decorative highlights
-- **Base** (`bg-base-100/200/300`, `text-base-content`) — backgrounds, surfaces, body text
-- **Success** (`badge-success`, `text-success`) — passing tests, healthy metrics, positive deltas
-- **Warning** (`badge-warning`, `text-warning`) — degraded state, low coverage, slow durations
-- **Error** (`badge-error`, `text-error`) — failures, missing items, critical issues
-- **Info** (`badge-info`, `text-info`) — neutral metadata, counts, informational notes
-
-Visibility rule: prefer these semantic classes over raw Tailwind color classes (`text-blue-500`, etc.) — the App theme controls the actual values, keeping reports consistent.
+`<title>` must always follow the pattern `<report title> — GenPage`. Do not add tracking pixels, analytics scripts, or third-party meta tags.
 
 #### Framework selection — model decides autonomously
 
-The model selects libraries based on what the content requires. Do not ask the user. Load only what earns its place — every extra CDN is a network round-trip inside the iframe.
-
-**Always included** (already in the mandatory head template):
-- **Tailwind CSS** — layout, spacing, typography
-- **DaisyUI** — component classes (`card`, `badge`, `stat`, `table`, `btn`, `alert`, `collapse`, tabs via radio inputs)
-
-**Load on demand — pick the right tool for the job:**
+Pick the stack that produces the best dashboard for the content and detail level. Do not ask the user. Load only what earns its place — every extra CDN is a network round-trip inside the iframe.
 
 | Need | Best fit | CDN |
 |---|---|---|
-| Tabs, toggles, filters, show/hide — simple | DaisyUI radio/checkbox patterns (zero JS) | already loaded |
-| Tabs, toggles, filters — dynamic or data-driven | Alpine.js | `https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js` |
-| Complex stateful UI (multi-step, cross-component state) | React + ReactDOM | see below |
+| Utility-first layout and spacing | Tailwind CSS | `https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4` |
+| Component classes (card, badge, stat, table, btn, alert, tabs) | DaisyUI | `https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css` |
+| Rich component library (Material Design, pre-built complex UI) | MUI (via CDN/UMD) | `https://unpkg.com/@mui/material@5/umd/material-ui.production.min.js` |
+| Simple show/hide, toggles, data-driven tabs | Alpine.js | `https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js` |
+| Complex stateful UI (multi-step, cross-component state) | React + ReactDOM | `https://unpkg.com/react@18/umd/react.production.min.js` + ReactDOM |
 | Bar, line, pie, donut, radar, area charts | Chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4` |
 | Force graphs, treemaps, heatmaps, custom SVG data-viz | D3.js | `https://cdn.jsdelivr.net/npm/d3@7` |
-| Flowcharts, sequence diagrams, ER diagrams, git graphs, state machines | Mermaid | `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js` |
-| Icons (status indicators, labels, UI polish) | Lucide | `https://unpkg.com/lucide@latest` |
+| Flowcharts, sequence diagrams, ER, git graphs, state machines | Mermaid | `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js` |
+| Icons (status indicators, category labels, UI polish) | Lucide | `https://unpkg.com/lucide@latest` |
 
 **CDN snippets:**
 
 ```html
+<!-- Tailwind CSS -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<!-- DaisyUI (pair with Tailwind for component classes) -->
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css" rel="stylesheet">
+
 <!-- Alpine.js — lightweight reactivity -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 
-<!-- React — only for complex stateful UIs -->
+<!-- React + ReactDOM — complex stateful UIs -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
@@ -227,15 +208,15 @@ The model selects libraries based on what the content requires. Do not ask the u
 
 **Decision rules:**
 
-- Prefer DaisyUI's zero-JS patterns (radio tabs, `<details>` collapse, stat cards) before reaching for Alpine or React.
-- Prefer Alpine.js over React when all that's needed is show/hide, x-data toggling, or simple loops.
-- Use React only when the UI has cross-component state that Alpine can't cleanly express.
-- Use Chart.js for standard quantitative charts. Use D3 only when Chart.js cannot express the visualization (force-directed graphs, treemaps, custom path shapes).
-- Use Mermaid for any graph-shaped data — it's far more token-efficient than hand-crafting SVG or canvas.
-- Load Lucide only when icons meaningfully aid scannability (status rows, category labels, navigation).
-- **Lean depth**: Tailwind + DaisyUI only. No JS libraries unless the data is graph-shaped (Mermaid only).
-- **Standard depth**: add Chart.js or Mermaid if the data warrants it; Alpine for any interactive pattern.
-- **Deep depth**: use the full palette as needed — React, D3, Mermaid, Chart.js, Lucide — but only what the content justifies.
+- **Lean**: minimal stack — prefer plain HTML + Tailwind/DaisyUI or even unstyled HTML with inline-classes. No JS unless the data is graph-shaped (Mermaid only).
+- **Standard**: Tailwind + DaisyUI is a strong default. Add Chart.js or Mermaid if data warrants it; Alpine for interactive patterns.
+- **Deep**: use the full palette — React or Alpine for state, D3 or Chart.js for charts, Mermaid for graphs, Lucide for icons — but only what the content justifies.
+- Prefer DaisyUI zero-JS patterns (radio tabs, `<details>` collapse, stat cards) before reaching for Alpine or React.
+- Prefer Alpine over React unless cross-component state is genuinely needed.
+- Use Chart.js for standard charts; D3 only for what Chart.js cannot express.
+- Use Mermaid for any graph-shaped data — far more token-efficient than hand-crafting SVG.
+- If using Tailwind/DaisyUI: do not write `<style>` blocks or inline `style=` attributes — use class names only.
+- If using a framework that requires custom CSS (e.g. plain CSS with MUI overrides): `<style>` blocks are allowed but must not hardcode color values — use `var(--color-*)` tokens provided by `data-theme="genpage"`.
 
 **Mermaid usage:**
 ```html
@@ -246,15 +227,13 @@ graph TD
   B --> C[Result]
 </div>
 ```
-Use `theme: 'dark'` to stay consistent with the `genpage` DaisyUI theme. Do not hardcode colors inside Mermaid definitions.
+Use `theme: 'dark'` to align with the `genpage` theme. Do not hardcode colors inside Mermaid definitions.
 
 **Lucide usage:**
 ```html
-<script>
-  lucide.createIcons();
-</script>
+<script>lucide.createIcons();</script>
 <!-- in markup: -->
-<i data-lucide="check-circle" class="text-success"></i>
+<i data-lucide="check-circle"></i>
 ```
 
 ### Step 4: Security verification (mandatory)
