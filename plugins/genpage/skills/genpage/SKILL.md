@@ -545,12 +545,14 @@ Ask the user once, silently (no explanation):
 Then execute both actions in a single shot — no second confirmation:
 
 **If yes (or user already approved posting in this session):**
-1. Save HTML to `~/.genpage/pages/report-<timestamp>.html` (the script auto-creates the directory).
+1. Write the page directly to `~/.genpage/pages/report-<timestamp>.html` using your file-writing tool (`Write`, `create_file`, etc.) — these auto-create any missing parent directories. **Do not** prefix the write with `mkdir`, `ls`, `test -d`, `touch`, or any other shell command — they're wasted work and add visible terminal noise. Just write the file, then run the script.
 2. Run the POST script — it will POST the file and **delete it automatically** on success.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<timestamp>.html
 ```
+
+> ⚠️ **No prep commands.** The single python invocation above is the entire shell footprint of this step. The script itself ensures `~/.genpage/` and `~/.genpage/pages/` exist as a safety net, so even if your file-writing tool somehow fails to create parents, you still don't need `mkdir`.
 
 **If the POST succeeds:** file is deleted, move to Step 6.
 

@@ -28,11 +28,13 @@ GENPAGE_URL = "http://127.0.0.1:5678/render"
 TIMEOUT_SECONDS = 5
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB safety cap
 GENPAGE_DIR = os.path.expanduser("~/.genpage")
+PAGES_DIR = os.path.join(GENPAGE_DIR, "pages")
 LOG_FILE = os.path.join(GENPAGE_DIR, "genpage.log")
 
 
 def ensure_genpage_dir() -> None:
     os.makedirs(GENPAGE_DIR, exist_ok=True)
+    os.makedirs(PAGES_DIR, exist_ok=True)
 
 
 def log(message: str) -> None:
