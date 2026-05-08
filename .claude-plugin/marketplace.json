@@ -1,5 +1,6 @@
 {
   "name": "genpage-marketplace",
+  "description": "Marketplace for the GenPage skill — converts structured AI responses into interactive HTML reports rendered by the local GenPage App.",
   "owner": {
     "name": "Felipe Fernandes",
     "email": "nandzz@users.noreply.github.com"
