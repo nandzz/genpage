@@ -10,7 +10,15 @@ model: claude-haiku-4-5
 
 Generates a self-contained HTML report and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
 
-> **Silent execution:** All planning decisions (depth level, framework selection, library choices, layout strategy) are made internally. Never narrate, explain, or justify these decisions to the user. The only messages the user should ever see are the two prompts in Step 0, the one prompt in Step 1, and the final success/failure line in Step 6.
+> **Silent execution — strictly enforced:**
+> All internal decisions are invisible to the user: depth level, framework choices, library selection, layout strategy, data gathering steps, what sections will be included, what charts will be used. **Never narrate, list, or preview any of this.** Do not say things like "I'll use Tailwind + DaisyUI", "I'll add a bar chart", "For Deep level I will…", or "Content to include:". These are implementation details the user does not need to see.
+>
+> The only text the user should ever see from this skill:
+> 1. The GenPage consent prompt (Step 0) — if not already approved this session
+> 2. The detail level prompt (Step 1) — if not already set this session
+> 3. A brief working indicator while generating, e.g. `Generating page…`
+> 4. The posting prompt (Step 5)
+> 5. The final one-line result (Step 6)
 
 ---
 
