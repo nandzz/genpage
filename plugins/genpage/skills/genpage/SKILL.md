@@ -220,6 +220,35 @@ Pick the stack that produces the best dashboard for the content and detail level
 - If using Tailwind/DaisyUI: do not write `<style>` blocks or inline `style=` attributes — use class names only.
 - If using a framework that requires custom CSS (e.g. plain CSS with MUI overrides): `<style>` blocks are allowed but must not hardcode color values — use `var(--color-*)` tokens provided by `data-theme="genpage"`.
 
+#### Custom colors — allowed for data and expressive elements
+
+The theme owns foundational colors (page background, body text, surfaces, borders). For everything else — chart series, category tags, diagram nodes, status indicators, data-driven color coding — the model is free to choose any colors needed to express the concept clearly.
+
+**The one rule: every custom color must work in both light and dark themes.**
+
+Use the CSS `light-dark()` function to define dual-mode custom colors:
+
+```html
+<style>
+  :root {
+    --c-blue:   light-dark(#2563eb, #60a5fa);
+    --c-green:  light-dark(#16a34a, #4ade80);
+    --c-amber:  light-dark(#d97706, #fbbf24);
+    --c-red:    light-dark(#dc2626, #f87171);
+    --c-purple: light-dark(#7c3aed, #a78bfa);
+    --c-cyan:   light-dark(#0891b2, #22d3ee);
+  }
+</style>
+```
+
+Then reference them anywhere: `color: var(--c-blue)`, `background: var(--c-green)`, or as Chart.js/D3 color values via `getComputedStyle`.
+
+**Guidelines:**
+- Use saturated mid-tones — they read well on both light and dark backgrounds.
+- Avoid colors too close to pure white or pure black — they disappear on one of the themes.
+- For charts with many series, define the full palette upfront in `:root` and reference by variable — never hardcode hex values directly in JS data arrays.
+- `light-dark()` requires `color-scheme` to be set. Add this to `:root` if using the function: `color-scheme: light dark;`
+
 **Mermaid usage:**
 ```html
 <script>mermaid.initialize({ startOnLoad: true, theme: 'dark' });</script>
