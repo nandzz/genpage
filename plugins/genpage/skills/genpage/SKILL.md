@@ -132,11 +132,28 @@ Collect the minimum data needed to create a useful visual report.
 
 Create a complete, self-contained HTML document. The body/layout is unconstrained: choose any structure needed to represent the result clearly.
 
-#### Document metadata (mandatory)
+#### Document metadata
 
-Every generated report must include a well-formed `<head>` with the following metadata:
+The mandatory `<head>` template above already includes all required metadata. Fill in the placeholders:
+- `<one-line summary of the report content>` — concise, human-readable description of what the report covers
+- `<report title>` — short, descriptive title for this specific report
+- `<title>` must always follow the pattern `<report title> — GenPage`. Never leave it blank or generic.
+
+Do not add tracking pixels, analytics scripts, or third-party meta tags.
+
+#### Styling — Tailwind CSS + DaisyUI (mandatory)
+
+The HTML is rendered inside an **iframe**. It shares nothing with the host app — no stylesheets, no scripts, no variables. Every dependency must be included in the document itself.
+
+**Do not write `<style>` blocks or inline `style=` attributes.** Use class names only.
+
+##### Mandatory `<head>` template
+
+Every generated document must open with exactly this `<head>` block. Do not omit or reorder these tags:
 
 ```html
+<!DOCTYPE html>
+<html lang="en" data-theme="genpage">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -146,30 +163,14 @@ Every generated report must include a well-formed `<head>` with the following me
   <meta property="og:description" content="<one-line summary>">
   <meta property="og:type" content="article">
   <title><report title> — GenPage</title>
+
+  <!-- Styling (always required) -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 ```
 
-Rules:
-- `<title>` must always be set to `<report title> — GenPage`. Never leave it blank or generic.
-- `description` and `og:description` must be a concise, human-readable one-liner of what the report covers.
-- Do not add tracking pixels, analytics scripts, or third-party meta tags.
-
-#### Styling — Tailwind CSS + DaisyUI (mandatory)
-
-The GenPage App pre-loads Tailwind CSS and DaisyUI. **Do not write `<style>` blocks or inline style attributes.** Use class names only.
-
-Always include these tags in `<head>` — they are the only styling dependency:
-
-```html
-<link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-```
-
-Always set `data-theme="genpage"` on `<html>`. The App defines all color values for this theme — the model never knows or sets them:
-
-```html
-<html data-theme="genpage">
-```
+`data-theme="genpage"` is **always** set on `<html>`. The host app injects all CSS variable values for this theme at runtime — the model never knows or sets them. Do not override or replace this attribute.
 
 Styling rules:
 1. Use Tailwind utility classes for layout and spacing (`flex`, `gap-4`, `p-3`, `grid`, `w-full`, etc.).
