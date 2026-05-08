@@ -1,0 +1,14 @@
+{
+  "name": "genpage",
+  "description": "Converts any structured AI response — tables, metrics, dependency maps, comparisons, diagrams — into a self-contained interactive HTML report rendered by the local GenPage App.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Felipe Fernandes"
+  },
+  "homepage": "https://github.com/nandzz/genpage",
+  "repository": "https://github.com/nandzz/genpage",
+  "license": "MIT",
+  "keywords": ["genpage", "report", "visualization", "html", "dashboard", "ai-skill"],
+  "skills": ["./skills"],
+  "includePaths": ["./scripts"]
+}
