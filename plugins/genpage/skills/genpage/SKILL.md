@@ -10,6 +10,8 @@ model: claude-haiku-4-5
 
 Generates a self-contained HTML report and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
 
+> **Silent execution:** All planning decisions (depth level, framework selection, library choices, layout strategy) are made internally. Never narrate, explain, or justify these decisions to the user. The only messages the user should ever see are the two prompts in Step 0, the one prompt in Step 1, and the final success/failure line in Step 6.
+
 ---
 
 ## ⛔ HARD STOP — TWO-MOMENT RULE
