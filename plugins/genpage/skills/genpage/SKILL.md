@@ -1,10 +1,67 @@
 ---
 name: genpage
-description: "Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings — regardless of whether the user asked for a 'report'. Trigger = output shape, not request wording. A question about dependencies, architecture, or analysis that produces grouped output requires this check."
+description: "Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings. SILENT MODE: when this skill is active, your FIRST output token must be either a tool call OR a structured user-facing question — NEVER preamble like 'The user wants…', 'I need to follow…', 'Step 0:…', or any reference to the skill itself. Internal reasoning stays internal. Trigger = output shape, not request wording."
 model: claude-haiku-4-5
 license: MIT
 ---
 # GenPage
+
+## 🚨 ABSOLUTE FIRST RULE — NO PREAMBLE, EVER
+
+**The instant this skill activates, you enter SILENT MODE.**
+
+Your **first output token** must be one of these — and **only** these:
+
+1. A **tool call** (file read, search, structured-question UI, etc.), OR
+2. A **single short progress line** (≤ 5 words, no content leaked), OR
+3. The **final one-line result** (Step 6).
+
+Your first output token must **NEVER** be:
+
+- ❌ `"The user wants…"` / `"The user is asking…"`
+- ❌ `"I need to…"` / `"I'll need to…"` / `"Let me…"` / `"I should…"`
+- ❌ `"The genpage skill has been loaded"` / `"This skill says…"` / `"According to the skill…"`
+- ❌ `"Step 0:"` / `"Step 1:"` / `"Following the skill's instructions…"`
+- ❌ `"Asking user…"` / `"Now asking…"` / `"I'll ask…"` (just ASK — don't announce)
+- ❌ Any restatement of what the user requested
+- ❌ Any plan, outline, or list of sections you intend to build
+- ❌ Any framework, library, or chart-type names
+- ❌ Any data, dates, names, counts, or findings
+- ❌ Stream-of-consciousness ("Now I'm mapping out…", "Looking at the data…")
+- ❌ Self-corrections or uncertainty ("though figures vary by source…")
+
+### The leak detector — check yourself before every message
+
+Before sending **any** chat text while this skill is active, ask:
+
+> *"Does this sentence describe what I'm about to do, what I just decided, or what the user wants? If yes — DELETE IT. Replace with a tool call or stay silent."*
+
+If it starts with `I `, `The user `, `Let me `, `Now `, `Following `, `According `, `Step `, `This skill ` — **delete the entire sentence**. No exceptions.
+
+### Concrete leaks observed in the wild — these are FAILURES
+
+```
+❌ The user wants a report about... The genpage skill has been loaded.
+   I need to follow the skill's instructions. Step 0: Ask if they want...
+   Asking user I can visualize this as an interactive report in GenPage...
+```
+
+Every single line above is forbidden. The correct behavior for that scenario:
+
+```
+✅ [immediately invoke the structured-question UI tool with the consent question]
+```
+
+Nothing else. No accompanying chat text. No preamble. No announcement. The tool call **is** the response.
+
+### Silent-mode invariants
+
+- Reasoning is **never** verbalized. It happens, but it does not appear in chat.
+- Skill mechanics are **never** named. The user does not know "Step 0", "Step 1", "GenPage", "skill", or "instructions" exist as concepts in your head.
+- Tool calls happen **without preamble**. The instant you decide to call a tool, you call it. You do not narrate the decision.
+- Questions are emitted **only** through the host's structured question UI (when available), with **no chat text before or after**. The question is the entire user-visible output of that turn.
+
+---
 
 > **Model:** Use **Claude Haiku 4.5** (`claude-haiku-4-5`) to execute this skill. HTML generation is templating work — Haiku is faster and more cost-efficient for it. Switch back to the calling model only if a step explicitly requires deeper reasoning.
 
