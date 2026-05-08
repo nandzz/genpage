@@ -1,7 +1,7 @@
 ---
 name: genpage
 description: "Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings. SILENT MODE: when this skill is active, your FIRST output token must be either a tool call OR a structured user-facing question — NEVER preamble like 'The user wants…', 'I need to follow…', 'Step 0:…', or any reference to the skill itself. Internal reasoning stays internal. Trigger = output shape, not request wording."
-model: claude-haiku-4-5
+model: claude-sonnet-4-5
 license: MIT
 ---
 # GenPage
@@ -63,7 +63,9 @@ Nothing else. No accompanying chat text. No preamble. No announcement. The tool 
 
 ---
 
-> **Model:** Use **Claude Haiku 4.5** (`claude-haiku-4-5`) to execute this skill. HTML generation is templating work — Haiku is faster and more cost-efficient for it. Switch back to the calling model only if a step explicitly requires deeper reasoning.
+> **Model:** Use **Claude Sonnet 4.5** (`claude-sonnet-4-5`) to execute this skill. Sonnet handles the page layout decisions, data structuring, and silent-mode discipline more reliably than smaller models.
+>
+> **Note for Copilot users:** the `model:` field is a Claude Code convention and is ignored by GitHub Copilot — Copilot uses whatever model is selected in the chat model picker. For best silent-mode behavior on Copilot, pick a non-reasoning / non-thinking model (the chat dropdown). Models that stream visible chain-of-thought will leak intermediate reasoning that this skill cannot suppress at the prompt level.
 
 Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
 
