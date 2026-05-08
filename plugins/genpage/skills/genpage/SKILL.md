@@ -8,9 +8,87 @@ license: MIT
 
 > **Model:** Use **Claude Haiku 4.5** (`claude-haiku-4-5`) to execute this skill. HTML generation is templating work — Haiku is faster and more cost-efficient for it. Switch back to the calling model only if a step explicitly requires deeper reasoning.
 
-Generates a self-contained HTML report and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
+Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
 
-> **Silent execution:** All planning decisions (depth level, framework selection, library choices, layout strategy) are made internally. Never narrate, explain, or justify these decisions to the user. The only messages the user should ever see are the two prompts in Step 0, the one prompt in Step 1, and the final success/failure line in Step 6.
+---
+
+## ⛔ ZERO-NARRATION RULE — READ THIS FIRST
+
+This skill is **silent by design**. The page is the deliverable. The chat is not a deliverable.
+
+### The ONLY text the user is allowed to see
+
+Nothing else. Not one extra sentence.
+
+| # | Allowed message | When |
+|---|---|---|
+| 1 | The Step 0 consent question | Once per session, only if not yet answered |
+| 2 | The Step 1 detail-level question | Once per session, only if not yet answered |
+| 3 | Up to **3 short progress lines** while building (≤ 5 words each, no detail) | While the page is being built |
+| 4 | The Step 5 posting question | Once per session, only if not yet answered |
+| 5 | The Step 6 final result line (one line) | At the end |
+
+### Progress lines — short, vague, reassuring
+
+Emit at most **3** progress lines while working, each ≤ 5 words, spaced across the run. They tell the user the model is alive without leaking content or plan.
+
+✅ Allowed examples:
+- `Gathering data…`
+- `Building page…`
+- `Adding charts…`
+- `Almost done…`
+- `Posting…`
+
+❌ Forbidden in progress lines:
+- Names of frameworks, libraries, sections, or chart types
+- Counts, data points, dates, or findings
+- Self-corrections or uncertainty ("though the 1982 figure is uncertain…")
+- Anything longer than ~5 words
+
+If you can't say it in 5 words without leaking content, say nothing.
+
+### FORBIDDEN — never write any of this to the user
+
+- ❌ Plans, outlines, or "Let me create a comprehensive report with…"
+- ❌ Lists of sections, charts, or libraries you intend to use
+- ❌ "I'll use Tailwind + DaisyUI + Chart.js…"
+- ❌ Stream-of-consciousness reasoning ("I'm working through the data…", "Now I'm mapping out…", "Looking at the rest of the data…")
+- ❌ Self-corrections, doubts, or source caveats ("though some figures are uncertain…", "I'll proceed with what I have…")
+- ❌ Data summaries, findings, tables, or bullet points in the chat — those go in the page, not the chat
+- ❌ "I need to verify…", "Let me check…", "I'm compiling…", "I'm building…"
+- ❌ Restating the user's request back to them
+- ❌ Previewing the HTML, CSS, or JS — never paste source into the chat
+- ❌ The word "HTML" — say "page"
+- ❌ Multi-paragraph status updates. One short line maximum.
+
+### Concrete counter-example (do NOT do this)
+
+> 1. All presidents since 1980 (Luis Herrera Campins, Jaime Lusinchi…)
+> 2. GDP growth per year
+> 3. Key economic events
+> 4. Charts (Chart.js for GDP timeline…)
+> Let me create a comprehensive Deep report with: Overview section… Timeline of presidents… I'll use Tailwind + DaisyUI + Chart.js + Alpine.js… I'm working through the GDP data per year, though some of the historical figures are a bit uncertain…
+
+This is a **complete failure of the skill**. Every word above belongs inside the page or in your private reasoning — none of it belongs in the user-visible message. The user wants the page, not the process.
+
+### What it should look like instead
+
+```
+Gathering data…
+Building page…
+Almost done…
+[page is built, posted, file deleted]
+Page sent to GenPage ↗
+```
+
+That is the entire user-visible transcript for a successful run. A few short lines. No more.
+
+### Operating mode
+
+- Treat all planning, data collection, framework choice, layout decisions, and self-doubt as **internal**. They never reach the chat.
+- If you catch yourself about to write a plan, a bullet list of sections, or a "Let me…" sentence — **stop and delete it**. Render that content into the page instead.
+- Tool calls, file reads, and reasoning happen silently. The user sees only the 5 allowed messages above.
+- Prefer fewer words. If a status line is needed, three words is plenty.
 
 ---
 
