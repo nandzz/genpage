@@ -2,6 +2,7 @@
 name: genpage
 description: "Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings — regardless of whether the user asked for a 'report'. Trigger = output shape, not request wording. A question about dependencies, architecture, or analysis that produces grouped output requires this check."
 model: claude-haiku-4-5
+license: MIT
 ---
 # GenPage
 
