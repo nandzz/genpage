@@ -282,15 +282,7 @@ Create a complete, self-contained HTML document. The body/layout is unconstraine
 
 #### Styling — framework is the model's choice
 
-The HTML is rendered inside an **iframe**. It shares nothing with the host app — no stylesheets, no scripts, no variables. Every dependency must be included in the document itself.
-
-##### The only hard constraint
-
-`data-theme="genpage"` must always be set on `<html>`. The host app injects all color token values for this theme at runtime. Do not override or remove this attribute.
-
-```html
-<html lang="en" data-theme="genpage">
-```
+The page is rendered inside an **iframe**. It shares nothing with the host app — no stylesheets, no scripts, no variables. Every dependency must be included in the document itself.
 
 ##### Mandatory `<head>` template
 
@@ -298,7 +290,7 @@ Every generated document must include this metadata block. CDN tags are added be
 
 ```html
 <!DOCTYPE html>
-<html lang="en" data-theme="genpage">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -369,138 +361,22 @@ Pick the stack that produces the best page for the content and detail level. Do 
 - Prefer Alpine over React unless cross-component state is genuinely needed.
 - Use Chart.js for standard charts; D3 only for what Chart.js cannot express.
 - Use Mermaid for any graph-shaped data — far more token-efficient than hand-crafting SVG.
-- If using Tailwind/DaisyUI: do not write `<style>` blocks or inline `style=` attributes — use class names only.
-- If using a framework that requires custom CSS (e.g. plain CSS with MUI overrides): `<style>` blocks are allowed but must not hardcode color values — use `var(--color-*)` tokens provided by `data-theme="genpage"`.
 
-#### Foundation tokens — injected by the host app
+#### Colors
 
-The following CSS custom properties are injected into every iframe by the GenPage host app at runtime. **Always use these for structural UI** — backgrounds, text, surfaces, borders, brand accents. Never hardcode equivalent values.
+Pick whatever colors fit the content. There is no enforced token system or theme contract — just use Tailwind/DaisyUI utility classes (`bg-slate-900`, `text-emerald-500`, `bg-primary`, etc.) or any hex/rgb values. For Chart.js and D3, pass color strings directly.
 
-| Token | Role |
-|---|---|
-| `--color-base-100` | Page background (deepest) |
-| `--color-base-200` | Elevated surface (cards, panels) |
-| `--color-base-300` | Raised surface (nested panels, dividers) |
-| `--color-base-content` | Primary body text |
-| `--color-primary` | Brand accent — buttons, links, highlights |
-| `--color-primary-content` | Text/icons on a primary-colored surface |
-| `--color-secondary` | Secondary accent |
-| `--color-secondary-content` | Text/icons on a secondary-colored surface |
-| `--color-neutral` | Muted/neutral surface |
-| `--color-neutral-content` | Text/icons on a neutral surface |
-| `--color-error` | Error and destructive states |
-| `--color-error-content` | Text/icons on an error-colored surface |
-
-**Usage pattern:**
-```css
-body        { background: var(--color-base-100); color: var(--color-base-content); }
-.card       { background: var(--color-base-200); }
-.card-inner { background: var(--color-base-300); }
-.btn-primary { background: var(--color-primary); color: var(--color-primary-content); }
-.label      { color: var(--color-secondary); }
-.error-msg  { color: var(--color-error); }
-```
-
-When using **Tailwind/DaisyUI**, these map directly to DaisyUI semantic classes (`bg-base-100`, `text-base-content`, `bg-primary`, `text-primary-content`, etc.) — prefer those over raw `var()` references.
-
-When using **React** (inline styles or CSS-in-JS), reference the tokens directly:
-```jsx
-<div style={{ background: 'var(--color-base-100)', color: 'var(--color-base-content)' }}>
-<button style={{ background: 'var(--color-primary)', color: 'var(--color-primary-content)' }}>
-```
-
-When using **MUI**, override the theme palette to consume the tokens so all MUI components respect them automatically:
-```jsx
-const theme = createTheme({
-  palette: {
-    background: { default: 'var(--color-base-100)', paper: 'var(--color-base-200)' },
-    text:       { primary: 'var(--color-base-content)' },
-    primary:    { main: 'var(--color-primary)', contrastText: 'var(--color-primary-content)' },
-    secondary:  { main: 'var(--color-secondary)', contrastText: 'var(--color-secondary-content)' },
-    error:      { main: 'var(--color-error)', contrastText: 'var(--color-error-content)' },
-  },
-});
-```
-
-#### Custom colors — allowed for data and expressive elements
-
-The theme owns structural colors via the tokens above (backgrounds, text, surfaces, borders, brand). For everything else — chart series, category tags, diagram nodes, status indicators, severity levels, data-driven color coding — the model is free to choose any colors that express the concept clearly.
-
-**The one rule: every custom color must work in both light and dark themes.**
-
-Colors serve two separate contexts that require two separate patterns. Never mix them.
-
----
-
-##### CSS context — use `light-dark()` variables
-
-For colors applied via CSS (badges, tags, borders, text, backgrounds, SVG elements):
-
-```html
-<style>
-  :root {
-    color-scheme: light dark;
-    --c-blue:   light-dark(#2563eb, #60a5fa);
-    --c-green:  light-dark(#16a34a, #4ade80);
-    --c-amber:  light-dark(#d97706, #fbbf24);
-    --c-red:    light-dark(#dc2626, #f87171);
-    --c-purple: light-dark(#7c3aed, #a78bfa);
-    --c-cyan:   light-dark(#0891b2, #22d3ee);
-    --c-muted:  light-dark(#6b7280, #9ca3af);
-  }
-</style>
-```
-
-Use anywhere in CSS: `color: var(--c-blue)`, `background: var(--c-amber)`, `border-color: var(--c-red)`.
-
----
-
-##### JavaScript context — use dual-value constants
-
-For colors passed to Chart.js, D3, Canvas API, or any JavaScript that needs a color string:
-
-```js
-// Detect theme once — the host app sets color-scheme on :root
-const dark = getComputedStyle(document.documentElement).colorScheme === 'dark';
-
-// Define all chart/JS colors as dual constants — pick the right value immediately
-const C = {
-  blue:   dark ? '#60a5fa' : '#2563eb',
-  green:  dark ? '#4ade80' : '#16a34a',
-  amber:  dark ? '#fbbf24' : '#d97706',
-  red:    dark ? '#f87171' : '#dc2626',
-  purple: dark ? '#a78bfa' : '#7c3aed',
-  cyan:   dark ? '#22d3ee' : '#0891b2',
-  muted:  dark ? '#9ca3af' : '#6b7280',
-};
-
-// Use directly in chart data
-backgroundColor: C.blue
-backgroundColor: [C.blue, C.red, C.green]
-```
-
-> ⚠️ **Never** read CSS custom properties via `getComputedStyle().getPropertyValue('--c-blue')` to feed Chart.js or Canvas. It returns the raw unresolved string `light-dark(#2563eb, #60a5fa)` which no charting library can parse — charts render without color.
-
-The palette the model picks for CSS variables and the `C` object must use the **same hex values** — they are the same colors, just accessed through different mechanisms.
-
----
-
-**Guidelines:**
-- Choose any colors the content needs — don't limit yourself to the palette above.
-- Use saturated mid-tones — they read on both light and dark backgrounds.
-- Avoid near-white or near-black custom colors — they vanish on one of the themes.
-- For multi-series charts, define the full palette upfront in `C` before any `new Chart(...)` call.
+Keep it sensible: ensure adequate contrast (WCAG AA — 4.5:1 for body text, 3:1 for large text and UI), avoid near-white text on near-white backgrounds, and prefer a small consistent palette over a rainbow.
 
 **Mermaid usage:**
 ```html
-<script>mermaid.initialize({ startOnLoad: true, theme: 'dark' });</script>
+<script>mermaid.initialize({ startOnLoad: true });</script>
 <div class="mermaid">
 graph TD
   A[Entry] --> B[Step]
   B --> C[Result]
 </div>
 ```
-Use `theme: 'dark'` to align with the `genpage` theme. Do not hardcode colors inside Mermaid definitions.
 
 **Lucide usage:**
 ```html
@@ -508,6 +384,43 @@ Use `theme: 'dark'` to align with the `genpage` theme. Do not hardcode colors in
 <!-- in markup: -->
 <i data-lucide="check-circle"></i>
 ```
+
+#### Layout, motion, and accessibility
+
+Pages must look modern, render responsively, and be usable by everyone. These rules are non-negotiable.
+
+##### Layout
+
+- Use a **fluid, responsive layout** — CSS Grid, Flexbox, or Tailwind's responsive utilities (`sm:`, `md:`, `lg:`). Never produce a fixed-pixel layout.
+- Default container: centered, max-width around `max-w-6xl` / `max-w-7xl`, generous padding (`px-4 sm:px-6 lg:px-8`).
+- Mobile-first: design the small-screen layout first, then enhance for larger viewports. Single-column on mobile; multi-column only when there's room.
+- Use a clear visual hierarchy: one primary heading per section, consistent spacing scale, generous whitespace. Avoid cramped grids.
+- Cards, tables, and charts must reflow or scroll horizontally on narrow screens — never overflow the viewport.
+- Typography: legible body size (16px+), readable line-height (1.5–1.7), comfortable line-length (~60–80 characters).
+
+##### Motion — keep it minimal
+
+- **No heavy animations.** No animated gradients, no looping background effects, no pulsing/glowing/parallax decorations, no continuously moving elements.
+- Allowed: subtle hover transitions on interactive elements (≤ 200ms), simple fade/slide on tab/modal open, Chart.js's default chart entry animation.
+- Forbidden: animated background gradients, marquee text, auto-playing carousels, particle effects, scroll-jacking, anything that loops indefinitely.
+- Always honor `prefers-reduced-motion`:
+  ```css
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  ```
+
+##### Accessibility (WCAG AA baseline)
+
+- Use semantic HTML: `<header>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<footer>`, real `<button>` and `<a>` elements (never `<div onclick>`).
+- One `<h1>` per page; nest headings logically (`h2` → `h3`), no skipping levels.
+- All `<img>` tags need meaningful `alt` text (or `alt=""` if purely decorative).
+- Color contrast: WCAG AA — 4.5:1 for body text, 3:1 for large text and UI components. Never rely on color alone to convey meaning (pair with icons, labels, or patterns).
+- Focus states must be visible — never remove focus outlines without replacing them.
+- Interactive elements must be keyboard-reachable and operable (Tab, Enter, Space, Esc).
+- Form inputs need associated `<label>` elements.
+- For icons used as buttons, add `aria-label`. For decorative icons, add `aria-hidden="true"`.
+- Charts/diagrams: provide a brief text caption or summary nearby so the data is reachable without seeing the visual.
 
 #### Images — sourcing policy
 
