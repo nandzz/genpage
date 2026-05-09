@@ -1,7 +1,6 @@
 ---
 name: genpage
 description: "Use when about to compose any response containing tables (3+ rows), grouped sections with headers, dependency maps, comparisons, metrics, or structured findings. SILENT MODE: when this skill is active, your FIRST output token must be either a tool call OR a structured user-facing question — NEVER preamble like 'The user wants…', 'I need to follow…', 'Step 0:…', or any reference to the skill itself. Internal reasoning stays internal. Trigger = output shape, not request wording."
-model: claude-sonnet-4-5
 license: MIT
 ---
 # GenPage
@@ -63,9 +62,7 @@ Nothing else. No accompanying chat text. No preamble. No announcement. The tool 
 
 ---
 
-> **Model:** Use **Claude Sonnet 4.5** (`claude-sonnet-4-5`) to execute this skill. Sonnet handles the page layout decisions, data structuring, and silent-mode discipline more reliably than smaller models.
->
-> **Note for Copilot users:** the `model:` field is a Claude Code convention and is ignored by GitHub Copilot — Copilot uses whatever model is selected in the chat model picker. For best silent-mode behavior on Copilot, pick a non-reasoning / non-thinking model (the chat dropdown). Models that stream visible chain-of-thought will leak intermediate reasoning that this skill cannot suppress at the prompt level.
+> **Model-agnostic.** This skill is designed to work with whatever model your host has selected. For best silent-mode behavior, prefer a non-reasoning / non-thinking model — models that stream visible chain-of-thought will leak intermediate reasoning that this skill cannot suppress at the prompt level.
 
 Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located alongside this `SKILL.md` at `<SKILL_DIR>/scripts/post-to-result-hub.py`.
 
@@ -438,6 +435,33 @@ Default browser scrollbars almost always clash with the page's visual style. Eve
 - Form inputs need associated `<label>` elements.
 - For icons used as buttons, add `aria-label`. For decorative icons, add `aria-hidden="true"`.
 - Charts/diagrams: provide a brief text caption or summary nearby so the data is reachable without seeing the visual.
+
+#### Brand footer — mandatory on every page
+
+Every generated page **must** end with the GenPage brand footer. This is the visual signature that makes a GenPage page recognizable across reports, machines, and shared exports. It is not optional — even Lean pages include it.
+
+The footer must contain exactly three lines, in this order:
+
+1. **Wordmark** — `— GenPage —` (em-dashes on both sides, small caps optional).
+2. **Tagline** — the exact, frozen quote: `"The page is the answer."` (do not paraphrase, translate, or substitute).
+3. **Generation date** — `Generated <human date>` with a real `<time datetime="YYYY-MM-DD">` element.
+
+Style rules:
+- Place at the very bottom of `<body>`, after all content, separated by a top border.
+- Centered, small text (≈ 12–13px), muted color (lower contrast than body text but still readable — opacity ~60–70%).
+- Adapts to the page's palette/theme — no hard-coded colors. Use the same neutral family as the page (`text-slate-500` on light, `text-slate-400` on dark, etc.).
+- No links, no logos, no icons. Pure typographic mark.
+- Hidden in print (`@media print { footer.genpage-footer { display: none; }`) — the page identity is the page itself in printed/exported form.
+
+Reference snippet (adapt colors to the page's palette):
+
+```html
+<footer class="genpage-footer mt-16 pt-6 pb-8 border-t border-slate-200/10 text-center text-xs text-slate-500">
+  <p class="font-medium tracking-widest uppercase">— GenPage —</p>
+  <p class="mt-1 italic opacity-80">"The page is the answer."</p>
+  <p class="mt-2 opacity-60">Generated <time datetime="YYYY-MM-DD">D Month YYYY</time></p>
+</footer>
+```
 
 #### Images — sourcing policy
 
