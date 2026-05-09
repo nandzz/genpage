@@ -67,7 +67,7 @@ Nothing else. No accompanying chat text. No preamble. No announcement. The tool 
 >
 > **Note for Copilot users:** the `model:` field is a Claude Code convention and is ignored by GitHub Copilot — Copilot uses whatever model is selected in the chat model picker. For best silent-mode behavior on Copilot, pick a non-reasoning / non-thinking model (the chat dropdown). Models that stream visible chain-of-thought will leak intermediate reasoning that this skill cannot suppress at the prompt level.
 
-Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located at `${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py`.
+Generates a self-contained page and sends it to the local GenPage App. The endpoint is configured in `scripts/post-to-result-hub.py`, located alongside this `SKILL.md` at `<SKILL_DIR>/scripts/post-to-result-hub.py`.
 
 ---
 
@@ -398,6 +398,23 @@ Pages must look modern, render responsively, and be usable by everyone. These ru
 - Cards, tables, and charts must reflow or scroll horizontally on narrow screens — never overflow the viewport.
 - Typography: legible body size (16px+), readable line-height (1.5–1.7), comfortable line-length (~60–80 characters).
 
+##### Scrollbars — must match the page design
+
+Default browser scrollbars almost always clash with the page's visual style. Every page **must** style its scrollbars to match the chosen palette and theme (light/dark). This applies to the page itself **and** any inner scrollable containers (overflowing tables, code blocks, side panels, modals, etc.).
+
+- Style both engines: WebKit/Blink (`::-webkit-scrollbar*`) and Firefox (`scrollbar-width`, `scrollbar-color`).
+- Track should blend with the surface behind it (page background or container background); thumb should use a muted variant of the page's primary/neutral color, with a slightly stronger hover state.
+- Keep scrollbars **slim but visible** (8–12px). Never hide them entirely on desktop — discoverability matters.
+- Honor dark mode: if the page has a dark theme or `prefers-color-scheme: dark`, the scrollbar colors must adapt accordingly.
+- Reference snippet (adapt the colors to the page's palette):
+  ```css
+  html { scrollbar-width: thin; scrollbar-color: theme(colors.slate.400) transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: theme(colors.slate.300); border-radius: 9999px; }
+  *::-webkit-scrollbar-thumb:hover { background: theme(colors.slate.500); }
+  ```
+
 ##### Motion — keep it minimal
 
 - **No heavy animations.** No animated gradients, no looping background effects, no pulsing/glowing/parallax decorations, no continuously moving elements.
@@ -462,8 +479,10 @@ Then execute both actions in a single shot — no second confirmation:
 2. Run the POST script — it will POST the file and **delete it automatically** on success.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<timestamp>.html
+python3 "<SKILL_DIR>/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<timestamp>.html
 ```
+
+`<SKILL_DIR>` is the absolute path of the directory containing **this** `SKILL.md` — you already know it from how the skill was loaded. Substitute it directly into the command. Do **not** use `${CLAUDE_PLUGIN_ROOT}` or any other env var: it's unreliable across hosts and has expanded to empty (causing `can't open file '/scripts/post-to-result-hub.py'`). Never invent a path — use the real load location of this skill.
 
 > ⚠️ **No prep commands.** The single python invocation above is the entire shell footprint of this step. The script itself ensures `~/.genpage/` and `~/.genpage/pages/` exist as a safety net, so even if your file-writing tool somehow fails to create parents, you still don't need `mkdir`.
 
