@@ -57,10 +57,9 @@ Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head
 | Bar / line / pie / area / scatter | Chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4` |
 | Heatmap, sankey, treemap, radar, gauge, candlestick, gantt | ECharts | `https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js` |
 | Declarative statistical charts from JSON | Vega-Lite | `https://cdn.jsdelivr.net/npm/vega@5` + `https://cdn.jsdelivr.net/npm/vega-lite@5` + `https://cdn.jsdelivr.net/npm/vega-embed@6` |
-| **Interactive** flowcharts, processes, system maps, journey maps, mind maps | React Flow | `https://unpkg.com/@xyflow/react@12/dist/umd/index.js` + `https://unpkg.com/@xyflow/react@12/dist/style.css` (needs React + ReactDOM, plus `https://unpkg.com/dagre@0.8.5/dist/dagre.min.js` for auto-layout) |
+| Flowcharts, processes, system maps, journey maps, mind maps (branched flows) | React Flow | `https://unpkg.com/@xyflow/react@12/dist/umd/index.js` + `https://unpkg.com/@xyflow/react@12/dist/style.css` (needs React + ReactDOM, plus `https://unpkg.com/dagre@0.8.5/dist/dagre.min.js` for auto-layout) |
 | Force-directed / network / dependency graphs | Cytoscape.js | `https://cdn.jsdelivr.net/npm/cytoscape@3/dist/cytoscape.min.js` |
 | Custom SVG, bespoke viz, geo projections | D3.js | `https://cdn.jsdelivr.net/npm/d3@7` |
-| **Short static** flowchart, sequence, ER, state (≤6 nodes, no interaction) | Mermaid | `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js` |
 | Geographic data, points/regions on a map | Leaflet | `https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.js` + `https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.css` |
 | Large interactive data table (sort/filter/paginate) | Tabulator | `https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/js/tabulator.min.js` + `https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/css/tabulator.min.css` |
 
@@ -75,7 +74,7 @@ Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head
 
 - **One viz library per page.** If the content needs both a flowchart and a bar chart, that's React Flow + Chart.js — but never Chart.js + ECharts, or D3 + Cytoscape.
 - **Reach down before reaching up.** DaisyUI zero-JS → Alpine → React. Chart.js → ECharts → D3. Don't skip tiers without a concrete reason.
-- **Diagrams: React Flow by default, Mermaid only for tiny static ones.** Mermaid renders to a static SVG that shrinks until labels are unreadable, has no zoom/pan, and no click handlers. Use it only for ≤6 nodes in prose-style reports. Anything bigger or anything users should be able to explore → React Flow (with `dagre` auto-layout). Sequence/ER/state ≤6 nodes Mermaid is fine; sankey/gantt → ECharts; networks → Cytoscape; bespoke SVG → D3.
+- **Diagrams only for branched flows.** A diagram implies branching, convergence, or relationships. Linear sequences (routes, steps, timelines, recipes, changelogs) are **not** diagrams — use a timeline, stepper, or numbered list instead. When a diagram is justified: React Flow (with `dagre` auto-layout); sankey/gantt → ECharts; networks → Cytoscape; bespoke SVG → D3.
 - **No JS unless the content needs it.** A static report is HTML + Tailwind + DaisyUI. Don't load Alpine "just in case."
 
 ### Legibility floor — never crush content to fit
@@ -83,8 +82,8 @@ Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head
 Every visual element must stay readable at the size it actually renders. If labels would shrink below the floor, **change the layout, not the font size**.
 
 - **Minimum text size**: 12px in charts/diagrams, 14px in body, 11px only for axis ticks.
-- **Don't shoehorn anything into Mermaid.** Mermaid SVG shrinks-to-fit and has no zoom, pan, or click handlers — labels become illegible past ~6 nodes. For larger or interactive flowcharts/processes/system maps, use **React Flow** (with `dagre` for auto-layout). Mermaid is acceptable only for short, static diagrams in prose-style reports.
-- **Long sequences are not flowcharts.** Route stops, breadcrumbs, tags — render as a wrapping chip row, stepper, or numbered list, not a `graph LR`.
+- **Is this actually a graph?** Before reaching for a diagram library, check: does the content have branching (one node → many) or convergence (many → one)? If no, it's a sequence, not a diagram — use a timeline/stepper/list instead.
+- **Long sequences are not flowcharts.** Route stops, breadcrumbs, tags — render as a wrapping chip row, stepper, or numbered list.
 - **Wrap, don't scroll horizontally**, for label sequences. Use `flex flex-wrap gap-2` with chips sized to their content.
 - **Charts need room.** Minimum chart height 240px; line/bar charts with >10 categories need either rotation, truncation, or a horizontal bar chart instead.
 - **Interactive diagrams need a canvas.** React Flow / Cytoscape containers should be at least 480px tall, with `fitView` enabled and pan/zoom controls visible.
@@ -93,8 +92,8 @@ Every visual element must stay readable at the size it actually renders. If labe
 #### Wrong vs right — long sequence
 
 ```html
-<!-- WRONG: 16 stops crushed into one Mermaid LR row -->
-<div class="mermaid">graph LR; A-->B-->C-->D-->E-->F-->G-->H-->I-->J-->K-->L-->M-->N-->O-->P</div>
+<!-- WRONG: forcing a linear route into a diagram library -->
+<div id="flow"><!-- React Flow with 16 nodes squeezed into a 400px card --></div>
 
 <!-- RIGHT: wrapping chip row, readable at any width -->
 <ol class="flex flex-wrap items-center gap-2 text-sm">
@@ -104,23 +103,23 @@ Every visual element must stay readable at the size it actually renders. If labe
   <li class="text-slate-400">→</li>
   <!-- … -->
 </ol>
+
+<!-- ALSO RIGHT: vertical timeline for rich per-step content -->
+<ol class="relative border-l border-slate-200 dark:border-white/10 space-y-6 ml-2">
+  <li class="ml-4">
+    <span class="absolute -left-[7px] w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-white dark:ring-zinc-950"></span>
+    <h3 class="font-semibold">Cosenza <span class="text-xs text-slate-500 ml-2">Start</span></h3>
+    <p class="text-sm text-slate-500">Leave early — ~4h drive south</p>
+  </li>
+  <!-- … -->
+</ol>
 ```
 
 ### Examples
 
-#### Mermaid (short static diagrams only — ≤6 nodes)
+#### React Flow (default for branched diagrams)
 
-```html
-<script>mermaid.initialize({ startOnLoad: true });</script>
-<div class="mermaid">
-graph TD
-  A[Entry] --> B[Step] --> C[Result]
-</div>
-```
-
-#### React Flow (interactive diagrams — default for >6 nodes)
-
-Needs React + ReactDOM + dagre. Renders to a `<div>` with built-in pan/zoom/minimap; nodes stay readable because the canvas can be larger than the viewport.
+Needs React + ReactDOM + dagre. Renders to a `<div>` with built-in pan/zoom/minimap; nodes stay readable because the canvas can be larger than the viewport. **Do not use for linear sequences — use a timeline instead.**
 
 ```html
 <link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12/dist/style.css">
@@ -279,6 +278,45 @@ Chart.defaults.plugins.legend.display = false;
 | Border color | `border-slate-200` / `border-white/5` |
 | Muted text | `text-slate-500` / `text-slate-400` |
 
+### Component contracts
+
+Per-component rules that override library defaults. Applied universally regardless of content.
+
+- **Badges / pills / chips**: `inline-flex items-center gap-1 whitespace-nowrap`, content-sized via padding. Never set `w-*` on a pill. Never `truncate` a label — if it doesn't fit, the layout is wrong. Neutral by default (`bg-slate-100 text-slate-700` / dark `bg-white/5 text-slate-300`); status colors (`success`/`warning`/`error`/`info`) only for status; accent (`bg-primary/10 text-primary`) only for one emphasised item per group.
+- **Buttons**: same sizing rules as pills. `whitespace-normal` allowed only when the label is intentionally long and the button is in a wide context.
+- **Cards**: content-sized height (no `h-*`). Use the density tokens above.
+- **Tables**: wrap in `<div class="overflow-x-auto rounded-xl border border-slate-200/60 dark:border-white/5">`. Right-align numeric columns with `tabular-nums`. Below `md:` or for tables with ≥5 columns, prefer a stacked card list (one card per row, key/value pairs).
+- **Categorical encoding**: differentiate by text, icon, or position first. Use color only when ALL of: ≥4 distinct categories AND color is the primary affordance AND a legend exists on the page. Otherwise: neutral pills.
+- **Linear sequences (no branches)**: timeline, stepper (DaisyUI `steps`), or numbered list. Never a diagram library — diagrams are for branched flows only.
+- **Label sequences (chips, tags, breadcrumbs)**: `flex flex-wrap gap-2`. Never `overflow-x-auto` with a hidden scrollbar.
+- **Three-width sanity check**: every component must render acceptably at 375px, 768px, and 1280px. If it only works at one width, redesign.
+
+#### Wrong vs right — badge that clips
+
+```html
+<!-- WRONG: fixed width forces truncation -->
+<span class="badge badge-success w-20 overflow-hidden truncate">Natural Reserve</span>
+
+<!-- RIGHT: content-sized pill, neutral by default -->
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+             bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-slate-300
+             whitespace-nowrap">Natural Reserve</span>
+```
+
+#### Wrong vs right — categorical rainbow
+
+```html
+<!-- WRONG: each category gets a different bright color, no legend -->
+<span class="badge bg-pink-500">Day 2</span>
+<span class="badge bg-blue-500">Day 4</span>
+<span class="badge bg-emerald-500">Day 5</span>
+
+<!-- RIGHT: neutral pills, accent only on the emphasised one -->
+<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-slate-100 text-slate-700">Day 2</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-slate-100 text-slate-700">Day 4</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-primary/10 text-primary">Day 5 — featured</span>
+```
+
 ## Layout & color baseline
 
 Always true, regardless of the visual style chosen above:
@@ -292,7 +330,7 @@ Always true, regardless of the visual style chosen above:
 
 ## Scrollbars — must match the layout
 
-Every scrollable surface (page, card, table, code block, modal, sidebar, Tabulator, Mermaid overflow container) **must** use a scrollbar styled to the active theme. Default OS scrollbars break the design instantly — especially in dark mode where they appear as bright grey bars.
+Every scrollable surface (page, card, table, code block, modal, sidebar, Tabulator, React Flow / Cytoscape canvas) **must** use a scrollbar styled to the active theme. Default OS scrollbars break the design instantly — especially in dark mode where they appear as bright grey bars.
 
 - Style WebKit/Blink (`::-webkit-scrollbar*`) **and** Firefox (`scrollbar-width`, `scrollbar-color`).
 - Apply to `html` **and** `*` so nested scroll containers inherit consistently.
@@ -303,7 +341,6 @@ Every scrollable surface (page, card, table, code block, modal, sidebar, Tabulat
   - `overflow-x-auto` table wrappers
   - `overflow-auto` code blocks (`<pre>`)
   - Tabulator's internal scroll area (`.tabulator-tableholder`)
-  - Mermaid containers wrapped in `overflow-x-auto`
   - Sticky sidebars and modal bodies
 
 ```css
