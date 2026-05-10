@@ -55,11 +55,12 @@ Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head
 | If the content is… | Use | CDN |
 |---|---|---|
 | Bar / line / pie / area / scatter | Chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4` |
-| Heatmap, sankey, treemap, radar, gauge, candlestick | ECharts | `https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js` |
+| Heatmap, sankey, treemap, radar, gauge, candlestick, gantt | ECharts | `https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js` |
 | Declarative statistical charts from JSON | Vega-Lite | `https://cdn.jsdelivr.net/npm/vega@5` + `https://cdn.jsdelivr.net/npm/vega-lite@5` + `https://cdn.jsdelivr.net/npm/vega-embed@6` |
+| **Interactive** flowcharts, processes, system maps, journey maps, mind maps | React Flow | `https://unpkg.com/@xyflow/react@12/dist/umd/index.js` + `https://unpkg.com/@xyflow/react@12/dist/style.css` (needs React + ReactDOM, plus `https://unpkg.com/dagre@0.8.5/dist/dagre.min.js` for auto-layout) |
 | Force-directed / network / dependency graphs | Cytoscape.js | `https://cdn.jsdelivr.net/npm/cytoscape@3/dist/cytoscape.min.js` |
 | Custom SVG, bespoke viz, geo projections | D3.js | `https://cdn.jsdelivr.net/npm/d3@7` |
-| Flowchart, sequence, ER, state, gantt | Mermaid | `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js` |
+| **Short static** flowchart, sequence, ER, state (≤6 nodes, no interaction) | Mermaid | `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js` |
 | Geographic data, points/regions on a map | Leaflet | `https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.js` + `https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.css` |
 | Large interactive data table (sort/filter/paginate) | Tabulator | `https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/js/tabulator.min.js` + `https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/css/tabulator.min.css` |
 
@@ -72,9 +73,9 @@ Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head
 
 ### Decision rules
 
-- **One viz library per page.** If the content needs both a flowchart and a bar chart, that's Mermaid + Chart.js — but never Chart.js + ECharts, or D3 + Cytoscape.
+- **One viz library per page.** If the content needs both a flowchart and a bar chart, that's React Flow + Chart.js — but never Chart.js + ECharts, or D3 + Cytoscape.
 - **Reach down before reaching up.** DaisyUI zero-JS → Alpine → React. Chart.js → ECharts → D3. Don't skip tiers without a concrete reason.
-- **Mermaid for diagrams, D3 only for bespoke.** If a flowchart, sequence, ER, state, or gantt fits, use Mermaid. Save D3 for visuals no off-the-shelf library expresses.
+- **Diagrams: React Flow by default, Mermaid only for tiny static ones.** Mermaid renders to a static SVG that shrinks until labels are unreadable, has no zoom/pan, and no click handlers. Use it only for ≤6 nodes in prose-style reports. Anything bigger or anything users should be able to explore → React Flow (with `dagre` auto-layout). Sequence/ER/state ≤6 nodes Mermaid is fine; sankey/gantt → ECharts; networks → Cytoscape; bespoke SVG → D3.
 - **No JS unless the content needs it.** A static report is HTML + Tailwind + DaisyUI. Don't load Alpine "just in case."
 
 ### Legibility floor — never crush content to fit
@@ -82,13 +83,11 @@ Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head
 Every visual element must stay readable at the size it actually renders. If labels would shrink below the floor, **change the layout, not the font size**.
 
 - **Minimum text size**: 12px in charts/diagrams, 14px in body, 11px only for axis ticks.
-- **Don't shoehorn long sequences into Mermaid.** A horizontal flow with more than ~6 nodes will compress into illegible pills inside a card. Options instead:
-  - Switch direction (`graph TD` top-down) so it grows vertically.
-  - Render as a numbered **stepper / breadcrumb list** in plain HTML (DaisyUI `steps`, or a Tailwind flex-wrap row of `rounded-full` chips with `flex-wrap` so they wrap to multiple lines).
-  - Group into stages and show a short Mermaid per stage.
-- **Wrap, don't scroll horizontally**, for label sequences (route stops, tags, breadcrumbs). Use `flex flex-wrap gap-2` with chips sized to their content.
+- **Don't shoehorn anything into Mermaid.** Mermaid SVG shrinks-to-fit and has no zoom, pan, or click handlers — labels become illegible past ~6 nodes. For larger or interactive flowcharts/processes/system maps, use **React Flow** (with `dagre` for auto-layout). Mermaid is acceptable only for short, static diagrams in prose-style reports.
+- **Long sequences are not flowcharts.** Route stops, breadcrumbs, tags — render as a wrapping chip row, stepper, or numbered list, not a `graph LR`.
+- **Wrap, don't scroll horizontally**, for label sequences. Use `flex flex-wrap gap-2` with chips sized to their content.
 - **Charts need room.** Minimum chart height 240px; line/bar charts with >10 categories need either rotation, truncation, or a horizontal bar chart instead.
-- **Mermaid sizing**: set a minimum width on the container and let it scroll horizontally if needed (`overflow-x-auto`), rather than letting it shrink. Better: pick a different representation.
+- **Interactive diagrams need a canvas.** React Flow / Cytoscape containers should be at least 480px tall, with `fitView` enabled and pan/zoom controls visible.
 - **Test the worst case.** If the data could realistically have 20 items, design for 20, not 4.
 
 #### Wrong vs right — long sequence
@@ -109,7 +108,7 @@ Every visual element must stay readable at the size it actually renders. If labe
 
 ### Examples
 
-#### Mermaid
+#### Mermaid (short static diagrams only — ≤6 nodes)
 
 ```html
 <script>mermaid.initialize({ startOnLoad: true });</script>
@@ -117,6 +116,47 @@ Every visual element must stay readable at the size it actually renders. If labe
 graph TD
   A[Entry] --> B[Step] --> C[Result]
 </div>
+```
+
+#### React Flow (interactive diagrams — default for >6 nodes)
+
+Needs React + ReactDOM + dagre. Renders to a `<div>` with built-in pan/zoom/minimap; nodes stay readable because the canvas can be larger than the viewport.
+
+```html
+<link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12/dist/style.css">
+<div id="flow" style="width:100%;height:520px"></div>
+<script type="module">
+  import React from 'https://esm.sh/react@18';
+  import { createRoot } from 'https://esm.sh/react-dom@18/client';
+  import { ReactFlow, Background, Controls, MiniMap } from 'https://esm.sh/@xyflow/react@12';
+  import dagre from 'https://esm.sh/dagre@0.8.5';
+
+  // Auto-layout with dagre so the model doesn't position nodes manually
+  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 60 });
+  const raw = [
+    { id: '1', label: 'Entry' }, { id: '2', label: 'Validate' },
+    { id: '3', label: 'Process' }, { id: '4', label: 'Result' },
+  ];
+  const edges = [{ source: '1', target: '2' }, { source: '2', target: '3' }, { source: '3', target: '4' }];
+  raw.forEach(n => g.setNode(n.id, { width: 160, height: 44 }));
+  edges.forEach(e => g.setEdge(e.source, e.target));
+  dagre.layout(g);
+
+  const nodes = raw.map(n => {
+    const { x, y } = g.node(n.id);
+    return { id: n.id, position: { x: x - 80, y: y - 22 }, data: { label: n.label } };
+  });
+  const flowEdges = edges.map((e, i) => ({ id: `e${i}`, source: e.source, target: e.target, animated: false }));
+
+  createRoot(document.getElementById('flow')).render(
+    React.createElement(ReactFlow, { nodes, edges: flowEdges, fitView: true, proOptions: { hideAttribution: true } },
+      React.createElement(Background, { gap: 16 }),
+      React.createElement(MiniMap),
+      React.createElement(Controls)
+    )
+  );
+</script>
 ```
 
 #### Lucide
