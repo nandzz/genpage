@@ -34,6 +34,14 @@ Match the framework to the **shape of the content**, not to a "tier." Tailwind h
 | Component classes (card, badge, stat, table, btn, alert, tabs) | DaisyUI | `https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css` |
 | Icons | Lucide | `https://unpkg.com/lucide@latest` |
 
+Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head>` after the Tailwind script:
+
+```html
+<style type="text/tailwindcss">
+  @plugin "daisyui" { themes: light --default, dark --prefersdark, business, corporate, night; }
+</style>
+```
+
 ### Interactivity (pick at most one)
 
 | Need | Library | CDN |
@@ -68,6 +76,36 @@ Match the framework to the **shape of the content**, not to a "tier." Tailwind h
 - **Reach down before reaching up.** DaisyUI zero-JS → Alpine → React. Chart.js → ECharts → D3. Don't skip tiers without a concrete reason.
 - **Mermaid for diagrams, D3 only for bespoke.** If a flowchart, sequence, ER, state, or gantt fits, use Mermaid. Save D3 for visuals no off-the-shelf library expresses.
 - **No JS unless the content needs it.** A static report is HTML + Tailwind + DaisyUI. Don't load Alpine "just in case."
+
+### Legibility floor — never crush content to fit
+
+Every visual element must stay readable at the size it actually renders. If labels would shrink below the floor, **change the layout, not the font size**.
+
+- **Minimum text size**: 12px in charts/diagrams, 14px in body, 11px only for axis ticks.
+- **Don't shoehorn long sequences into Mermaid.** A horizontal flow with more than ~6 nodes will compress into illegible pills inside a card. Options instead:
+  - Switch direction (`graph TD` top-down) so it grows vertically.
+  - Render as a numbered **stepper / breadcrumb list** in plain HTML (DaisyUI `steps`, or a Tailwind flex-wrap row of `rounded-full` chips with `flex-wrap` so they wrap to multiple lines).
+  - Group into stages and show a short Mermaid per stage.
+- **Wrap, don't scroll horizontally**, for label sequences (route stops, tags, breadcrumbs). Use `flex flex-wrap gap-2` with chips sized to their content.
+- **Charts need room.** Minimum chart height 240px; line/bar charts with >10 categories need either rotation, truncation, or a horizontal bar chart instead.
+- **Mermaid sizing**: set a minimum width on the container and let it scroll horizontally if needed (`overflow-x-auto`), rather than letting it shrink. Better: pick a different representation.
+- **Test the worst case.** If the data could realistically have 20 items, design for 20, not 4.
+
+#### Wrong vs right — long sequence
+
+```html
+<!-- WRONG: 16 stops crushed into one Mermaid LR row -->
+<div class="mermaid">graph LR; A-->B-->C-->D-->E-->F-->G-->H-->I-->J-->K-->L-->M-->N-->O-->P</div>
+
+<!-- RIGHT: wrapping chip row, readable at any width -->
+<ol class="flex flex-wrap items-center gap-2 text-sm">
+  <li class="px-3 py-1 rounded-full bg-slate-900 text-white">Cosenza</li>
+  <li class="text-slate-400">→</li>
+  <li class="px-3 py-1 rounded-full bg-slate-900 text-white">Gallipoli</li>
+  <li class="text-slate-400">→</li>
+  <!-- … -->
+</ol>
+```
 
 ### Examples
 
@@ -133,22 +171,13 @@ Pages should look like contemporary product UIs (Linear, Vercel, Stripe, Resend,
 
 ### Dark mode
 
-Default to dark for dashboards, light for prose/reports. Always provide both via DaisyUI themes.
+Default to dark for dashboards, light for prose/reports. Always provide both via DaisyUI themes — switching is just a `data-theme` change.
 
 ```html
-<html lang="en" data-theme="dark" class="dark">
+<html lang="en" data-theme="dark">
 ```
 
-Or adopt the system preference:
-
-```html
-<script>
-  document.documentElement.dataset.theme =
-    matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-</script>
-```
-
-DaisyUI themes worth defaulting to: `light`, `dark`, `business`, `corporate`, `night`. Pick **one** — don't mix.
+DaisyUI themes worth defaulting to: `light`, `dark`, `business`, `corporate`, `night`. Pick **one** — don't mix. With the `@plugin` config above, DaisyUI auto-applies `light`/`dark` based on `prefers-color-scheme` when you omit `data-theme`.
 
 ### Typography
 
@@ -160,7 +189,8 @@ Modern dashboards use a geometric sans for UI and tabular numerals for data.
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; }
-  .num, td.num, .stat-value { font-variant-numeric: tabular-nums; font-feature-settings: "cv11", "ss01"; }
+  /* Tabular numerals for stat cards, tables, deltas */
+  .num, td.num, .stat-value { font-variant-numeric: tabular-nums; }
 </style>
 ```
 
@@ -187,11 +217,13 @@ Whatever the library, apply these:
 - **Tooltips on hover only**, no permanent data labels unless the chart is small.
 - **Honor dark mode.** Read CSS variables / theme at init, don't hardcode `#fff` or `#000`.
 
-Chart.js example:
+Chart.js example (reads DaisyUI's base content color so it follows the theme):
 
 ```js
+const css = getComputedStyle(document.documentElement);
+const muted = css.getPropertyValue('--color-base-content').trim() || '#64748b';
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--fallback-bc') || '#64748b';
+Chart.defaults.color = muted;
 Chart.defaults.borderColor = 'rgba(148,163,184,0.15)';
 Chart.defaults.plugins.legend.display = false;
 ```
@@ -207,33 +239,51 @@ Chart.defaults.plugins.legend.display = false;
 | Border color | `border-slate-200` / `border-white/5` |
 | Muted text | `text-slate-500` / `text-slate-400` |
 
-## Colors
+## Layout & color baseline
 
-Use any palette that fits — Tailwind/DaisyUI utilities (`bg-slate-900`, `text-emerald-500`, `bg-primary`) or hex/rgb. Keep contrast at WCAG AA (4.5:1 body, 3:1 large text/UI). Use a small consistent palette, not a rainbow: **one neutral scale + one accent + status colors**, nothing else.
+Always true, regardless of the visual style chosen above:
 
-## Layout
+- **Responsive only.** CSS Grid, Flexbox, or Tailwind responsive utilities (`sm:`/`md:`/`lg:`). No fixed-pixel layouts.
+- **Centered container** `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`. Reports may use `max-w-6xl` for narrower line length.
+- **Mobile-first**: single-column on small viewports, multi-column when there's room. Cards/tables/charts reflow or scroll — never overflow the viewport.
+- **Body line length** 60–80ch for prose; dashboards can go wider for tables.
+- **Palette discipline**: one neutral scale + one accent + status colors (success/warning/error). No rainbows.
+- **WCAG AA contrast** (4.5:1 body text, 3:1 large text and UI elements). Verify accent-on-surface combinations.
 
-- Fluid, responsive. CSS Grid, Flexbox, or Tailwind responsive utilities (`sm:`, `md:`, `lg:`). No fixed-pixel layouts.
-- Centered container, ~`max-w-6xl`/`max-w-7xl`, generous padding (`px-4 sm:px-6 lg:px-8`).
-- Mobile-first; single-column on small, multi-column when there's room.
-- Cards/tables/charts must reflow or scroll — never overflow the viewport.
-- Typography: ≥14px body for dashboards / ≥16px for prose, line-height 1.5–1.7, line length 60–80ch.
+## Scrollbars — must match the layout
 
-## Scrollbars
+Every scrollable surface (page, card, table, code block, modal, sidebar, Tabulator, Mermaid overflow container) **must** use a scrollbar styled to the active theme. Default OS scrollbars break the design instantly — especially in dark mode where they appear as bright grey bars.
 
-Default browser scrollbars usually clash with the page's palette. Style them — both the page and any inner scrollable container — to match.
-
-- Style WebKit/Blink (`::-webkit-scrollbar*`) and Firefox (`scrollbar-width`, `scrollbar-color`).
-- Track blends with surface; thumb is a muted variant of the page's primary/neutral, slightly stronger on hover.
-- Slim but visible (8–12px). Don't hide them on desktop.
-- Adapt to dark mode if the page uses one.
+- Style WebKit/Blink (`::-webkit-scrollbar*`) **and** Firefox (`scrollbar-width`, `scrollbar-color`).
+- Apply to `html` **and** `*` so nested scroll containers inherit consistently.
+- Track is transparent or matches the surface; thumb is a muted neutral derived from the page's palette, slightly stronger on hover.
+- Slim but visible: 8–12px on desktop. Don't `display: none` — invisible scrollbars are a usability bug.
+- Theme-aware: read CSS variables / `prefers-color-scheme` so the bar adapts when the page does.
+- Apply to **every** scrollable element you create — not just the page. Common misses:
+  - `overflow-x-auto` table wrappers
+  - `overflow-auto` code blocks (`<pre>`)
+  - Tabulator's internal scroll area (`.tabulator-tableholder`)
+  - Mermaid containers wrapped in `overflow-x-auto`
+  - Sticky sidebars and modal bodies
 
 ```css
-html { scrollbar-width: thin; scrollbar-color: theme(colors.slate.400) transparent; }
+:root {
+  --gp-scroll-thumb: rgb(148 163 184 / 0.5);   /* slate-400/50 */
+  --gp-scroll-thumb-hover: rgb(100 116 139 / 0.8); /* slate-500/80 */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gp-scroll-thumb: rgb(255 255 255 / 0.12);
+    --gp-scroll-thumb-hover: rgb(255 255 255 / 0.22);
+  }
+}
+
+html, * { scrollbar-width: thin; scrollbar-color: var(--gp-scroll-thumb) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: theme(colors.slate.300); border-radius: 9999px; }
-*::-webkit-scrollbar-thumb:hover { background: theme(colors.slate.500); }
+*::-webkit-scrollbar-thumb { background: var(--gp-scroll-thumb); border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--gp-scroll-thumb-hover); background-clip: padding-box; }
+*::-webkit-scrollbar-corner { background: transparent; }
 ```
 
 ## Motion — keep it minimal
