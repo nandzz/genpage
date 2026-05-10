@@ -1,0 +1,103 @@
+[
+  {
+    "query": "ok i just ran `npm ls --depth=0` and got back like 40 packages, can you go through them and tell me which ones are devDependencies vs production deps and which are outdated? the package.json is in the root",
+    "should_trigger": true,
+    "rationale": "Multi-column table answer — classic dependency inventory"
+  },
+  {
+    "query": "compare the auth flow in src/auth/oauth.ts vs src/auth/saml.ts — i need to understand where they diverge before i refactor the shared bits",
+    "should_trigger": true,
+    "rationale": "Side-by-side comparison, output is naturally a 2-column structure"
+  },
+  {
+    "query": "audit my repo for any TODO/FIXME/HACK comments and group them by file and severity. i'm trying to clean up before the v3 release",
+    "should_trigger": true,
+    "rationale": "Findings/audit summary with grouped sections"
+  },
+  {
+    "query": "what's the test coverage situation across the packages in this monorepo? i think /api is fine but /worker and /admin are weak",
+    "should_trigger": true,
+    "rationale": "Metrics across multiple groups — naturally a table"
+  },
+  {
+    "query": "give me a recap of what changed in this branch vs main — files touched, lines added/removed, and a quick summary of each commit",
+    "should_trigger": true,
+    "rationale": "Explicit 'recap' + multi-section structured output"
+  },
+  {
+    "query": "list all the API endpoints exposed by routes/ — method, path, auth required, and the handler file",
+    "should_trigger": true,
+    "rationale": "Explicit 'list all' + 4-column table"
+  },
+  {
+    "query": "i need an overview of the database migrations under db/migrations — date, what they did, and whether any of them are reversible",
+    "should_trigger": true,
+    "rationale": "Timeline + structured per-row data"
+  },
+  {
+    "query": "review this PR and give me a breakdown of issues: bugs, style nits, security concerns, performance",
+    "should_trigger": true,
+    "rationale": "'breakdown' + grouped findings — exact GenPage shape"
+  },
+  {
+    "query": "send this to genpage as a deep report",
+    "should_trigger": true,
+    "rationale": "Explicit invocation"
+  },
+  {
+    "query": "can you visualize the call graph for handleCheckout() — i want to see what it touches downstream",
+    "should_trigger": true,
+    "rationale": "'visualize' + graph-shaped data"
+  },
+
+  {
+    "query": "what line is the bug on in checkout.ts? the test says it's somewhere around the discount calc",
+    "should_trigger": false,
+    "rationale": "Single-value answer — not a structured report"
+  },
+  {
+    "query": "rename `userID` to `userId` everywhere in src/",
+    "should_trigger": false,
+    "rationale": "Code edit, no structured output"
+  },
+  {
+    "query": "fix this typescript error: `Type 'string | undefined' is not assignable to type 'string'`",
+    "should_trigger": false,
+    "rationale": "Inline fix, conversational answer"
+  },
+  {
+    "query": "is there a way to make this regex case-insensitive without the /i flag?",
+    "should_trigger": false,
+    "rationale": "Short prose explanation"
+  },
+  {
+    "query": "write a function that debounces another function with a configurable delay",
+    "should_trigger": false,
+    "rationale": "Code generation, single artifact"
+  },
+  {
+    "query": "explain what a closure is in javascript",
+    "should_trigger": false,
+    "rationale": "Conceptual explanation, fits in a few paragraphs"
+  },
+  {
+    "query": "the build is failing with `Cannot find module 'lodash'` — what should i do",
+    "should_trigger": false,
+    "rationale": "Troubleshooting Q&A, single suggestion"
+  },
+  {
+    "query": "format this json file properly and remove the trailing commas",
+    "should_trigger": false,
+    "rationale": "File transform, no report"
+  },
+  {
+    "query": "can you create a new react component called UserCard that takes name, avatar and role as props",
+    "should_trigger": false,
+    "rationale": "Single component, code edit — answer is the file"
+  },
+  {
+    "query": "summarize this paragraph in one sentence: <some long text>",
+    "should_trigger": false,
+    "rationale": "'summarize' keyword but output is a single sentence — near-miss negative"
+  }
+]
