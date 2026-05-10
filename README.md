@@ -92,7 +92,7 @@ That's it. Next time your AI is about to produce a structured answer, it'll ask 
 2. **One-time consent** — Asks once per session: *"Visualize in GenPage?"* with a detail level (Lean / Standard / Deep).
 3. **HTML generation** — Builds a self-contained report using Tailwind CSS + DaisyUI, plus the *one* viz library that fits the data (Chart.js, ECharts, React Flow, D3, Cytoscape, Leaflet, Tabulator, KaTeX…).
 4. **POST + cleanup** — Writes to `~/.genpage/report-<timestamp>.html`, POSTs to the local app, deletes the file. Logs to `~/.genpage/genpage.log`.
-5. **Render** — The GenPage App displays it in your browser, themed to your DaisyUI theme.
+5. **Render** — The GenPage App displays it in your browser.
 
 ---
 
@@ -130,12 +130,6 @@ GenPage picks the right tool for each shape of data — never more than one viz 
 | Custom SVG, bespoke viz | D3.js |
 
 Pages are responsive, dark-mode aware, keyboard-navigable, and ship with theme-matched scrollbars. Reduced-motion is honored. WCAG AA contrast by default.
-
----
-
-## 🎛️ Theming
-
-All colors flow from the `genpage` DaisyUI theme defined in the GenPage App. The skill assigns *semantic* tokens only (`text-primary`, `badge-success`, `bg-base-200`) — never hardcoded hex. Change the theme in the App, every report follows.
 
 ---
 
@@ -180,7 +174,7 @@ Issues and PRs welcome. The trigger evals live in [`evals/`](evals/) — if you'
 
 ## 📦 The GenPage App
 
-The local renderer: a tiny server bound to `127.0.0.1:5678` that applies the `genpage` DaisyUI theme to whatever HTML the skill sends.
+The local renderer: a tiny server bound to `127.0.0.1:5678` that displays whatever HTML the skill sends.
 
 **→ [github.com/nandzz/genpage](https://github.com/nandzz/genpage)**
 
