@@ -123,6 +123,14 @@ For everything below, read the relevant reference file:
 
 Read the file once, follow it, and don't re-read on subsequent runs in the same session.
 
+**Optional design data** — when the report would benefit from a non-default palette or font pair (branded report, themed dashboard, content with a clear mood like "financial", "wellness", "editorial"), consult `references/data/`:
+
+- `colors.csv` — 161 industry-mapped palettes (`Product Type` column → palette tokens). Pick one whose `Product Type` or `Notes` matches the report's domain.
+- `typography.csv` — 57 Google Fonts pairings with `Mood/Style Keywords` and `CSS Import`. Drop the `CSS Import` line straight into `<head>`.
+- `ux-guidelines.csv` — 99 anti-patterns/best practices (Do / Don't / Severity). Skim for `High` severity rules relevant to your sections (tables, navigation, forms, accessibility).
+
+Don't load these files for every report — only when default Inter + DaisyUI theme isn't a good fit. Files are bundled under MIT from `nextlevelbuilder/ui-ux-pro-max-skill`; see `references/data/NOTICE.md`.
+
 ### Step 4 — Security check
 
 Run through `references/security.md` before posting. If anything fails, fix the page and re-check.

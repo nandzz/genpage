@@ -201,6 +201,8 @@ Pages should look like contemporary product UIs (Linear, Vercel, Stripe, Resend,
 
 ### Aesthetic defaults
 
+> **Themed palettes (optional).** The default DaisyUI theme covers most reports. When the content has a clear domain (SaaS, fintech, healthcare, e-commerce, wellness, etc.), pick a row from `references/data/colors.csv` whose `Product Type` matches and use its tokens (`Primary`, `Background`, `Foreground`, `Muted`, `Border`, `Destructive`, `Ring`) as CSS variables instead of the DaisyUI defaults. All palettes are pre-checked for WCAG AA contrast.
+
 - **Surfaces**: layered neutrals. `bg-white` / `bg-slate-50` for the page, `bg-white` cards on light; `bg-zinc-950` page with `bg-zinc-900` cards on dark. Avoid pure `#000` and pure `#fff` cards stacked on each other.
 - **Borders**: hairline, low-contrast (`border border-slate-200` light / `border-white/5` or `border-zinc-800` dark). Borders define structure; shadows don't.
 - **Radius**: `rounded-xl` (cards, inputs, buttons) or `rounded-2xl` (large surfaces). Never `rounded-full` on cards, never `rounded-none` on interactive elements.
@@ -220,7 +222,7 @@ DaisyUI themes worth defaulting to: `light`, `dark`, `business`, `corporate`, `n
 
 ### Typography
 
-Modern dashboards use a geometric sans for UI and tabular numerals for data.
+Modern dashboards use a geometric sans for UI and tabular numerals for data. **Inter is the default.** For a themed/branded report (luxury, editorial, fintech, playful, etc.), pick a pairing from `references/data/typography.csv` by matching the report mood against the `Mood/Style Keywords` column, then paste its `CSS Import` line below.
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
