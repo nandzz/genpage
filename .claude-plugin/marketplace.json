@@ -10,7 +10,7 @@
       "name": "genpage",
       "source": "./plugins/genpage",
       "description": "Converts any structured AI response — tables, metrics, dependency maps, comparisons, diagrams — into a self-contained interactive HTML report rendered by the local GenPage App.",
-      "version": "1.0.0",
+      "version": "1.5.0",
       "category": "productivity",
       "keywords": [
         "genpage",
