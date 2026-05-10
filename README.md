@@ -1,76 +1,145 @@
+<div align="center">
+
 # GenPage
 
-Converts any structured AI response — tables, grouped sections, metrics, dependency maps, comparisons, diagrams — into a self-contained interactive HTML report rendered by the local **GenPage App**.
+### Stop reading walls of markdown. Start *seeing* your AI's answers.
 
-The skill intercepts responses that would naturally produce structured output and routes them to a browser-based viewer instead of dumping markdown into the chat.
+**GenPage turns the structured output your AI assistant already produces — tables, metrics, comparisons, dependency maps, audits — into beautiful, interactive HTML reports rendered live in your browser.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=for-the-badge)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg?style=for-the-badge)](skill.json)
+[![Platforms](https://img.shields.io/badge/platforms-19+-purple.svg?style=for-the-badge)](#-works-everywhere)
+[![Made with Skills](https://img.shields.io/badge/AI-Skill-ff69b4.svg?style=for-the-badge)](https://github.com/nandzz/genpage)
+
+[**Install**](#-install-in-30-seconds) · [**How it works**](#-how-it-works) · [**Compatibility**](#-works-everywhere) · [**GenPage App**](https://github.com/nandzz/genpage)
+
+</div>
 
 ---
 
-## Prerequisites
+## ✨ Why GenPage
 
-| Requirement | Notes |
+Your AI assistant is brilliant at producing structured answers — but the chat window is the worst place to read them. Long tables wrap. Diagrams collapse into ASCII art. Comparisons lose their alignment. Findings get buried in scroll.
+
+**GenPage fixes that.** It detects when an answer *wants* to be a report — and routes it to a polished, interactive page instead of dumping markdown into chat.
+
+| Without GenPage | With GenPage |
 |---|---|
-| **GenPage App** | Must be running on `127.0.0.1:5678`. [Install here →](https://github.com/nandzz/genpage) |
-| **Python 3.6+** | Pre-installed on macOS/Linux. [Download for Windows →](https://www.python.org/downloads/) |
+| 📜 Endless scroll of markdown | 🖼️ A clean, scannable dashboard |
+| 📋 Tables that wrap and break | 📊 Sortable, filterable tables |
+| 🧩 ASCII diagrams | 🎨 Real flowcharts (React Flow, ECharts, D3) |
+| 🔍 Findings lost in noise | 🎯 Audit panels with status, badges, deltas |
+| 📵 Mobile-hostile output | 📱 Responsive, dark-mode aware, keyboard-friendly |
 
-> **Windows:** Use `python` instead of `python3` in all commands below.
+Every page is **self-contained HTML** — no build step, no framework lock-in, no telemetry. Just one file, sent to a local app on your machine.
 
 ---
 
-## Installation
+## 🚀 Install in 30 seconds
 
-### GitHub CLI (recommended)
+> **Prerequisite:** the [GenPage App](https://github.com/nandzz/genpage) running on `127.0.0.1:5678`. It's a tiny local server that renders the reports — no cloud, no account, no tracking.
+
+### 🥇 GitHub CLI (recommended)
 
 ```bash
 gh skill install nandzz/genpage
 ```
 
-### Claude Code
+### 🤖 Claude Code
 
 ```bash
 claude plugin marketplace add nandzz/genpage
-```
-
-Then install the plugin:
-
-```bash
 claude plugin install genpage@genpage-marketplace
 ```
 
-### Manual install (all other clients)
+### 🛠️ Manual install (everything else)
 
-Copy `skills/genpage/SKILL.md` to your client's skill directory:
+Drop `plugins/genpage/skills/genpage/SKILL.md` into your client's skills directory:
 
-| Client | Skill directory |
+| Client | Path |
 |---|---|
 | Claude Code | `~/.claude/skills/` |
-| Cursor | `.cursor/skills/` in your project |
-| Windsurf | `.windsurf/skills/` in your project |
-| Copilot (VS Code) | `.github/` + configure in `copilot-instructions.md` |
+| Cursor | `.cursor/skills/` |
+| Windsurf | `.windsurf/skills/` |
+| GitHub Copilot (VS Code) | `.github/` + reference in `copilot-instructions.md` |
 | Continue | `.continue/` |
 | Kiro | `.kiro/skills/` |
 | Roo Code / Kilo Code | `.roo/skills/` |
+| Codex / Gemini / Trae / Warp | client-specific skills folder |
+
+That's it. Next time your AI is about to produce a structured answer, it'll ask once: *"Visualize in GenPage?"* — and you're off.
 
 ---
 
-## How it works
+## 🎬 How it works
 
-1. **Trigger detection** — The skill fires when a response would produce a table (3+ rows), grouped sections, metrics, comparisons, dependency maps, or diagrams.
-2. **Consent** — Asks once per session: *"Visualize in GenPage?"*
-3. **Detail level** — Lean / Standard / Deep (controls token usage).
-4. **HTML generation** — Generates a self-contained report using Tailwind CSS + DaisyUI for styling, with optional Chart.js (quantitative charts) and Mermaid (flow/sequence/ER diagrams). React is only loaded when interactivity is needed.
-5. **POST** — Writes the report to `~/.genpage/report-<timestamp>.html`, POSTs it to the GenPage App, deletes the file. A log is appended to `~/.genpage/genpage.log`.
-6. **Rendered** — The GenPage App displays the report in your browser.
+```
+┌────────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  AI assistant      │────▶│  GenPage skill   │────▶│  GenPage App     │
+│  (any platform)    │     │  builds HTML     │     │  renders in      │
+│                    │     │  (self-contained)│     │  your browser    │
+└────────────────────┘     └──────────────────┘     └──────────────────┘
+        ▲                          │                         │
+        │                          ▼                         │
+        │                  ~/.genpage/*.html ──── POST ──────┘
+        │                  (deleted after send)
+        │
+   "should this be
+    a report?"
+```
+
+1. **Trigger detection** — Fires when a response would naturally produce a table (3+ rows), grouped sections, metrics, comparisons, dependency maps, or diagrams. Trigger is the *shape of the answer*, not the wording of the question.
+2. **One-time consent** — Asks once per session: *"Visualize in GenPage?"* with a detail level (Lean / Standard / Deep).
+3. **HTML generation** — Builds a self-contained report using Tailwind CSS + DaisyUI, plus the *one* viz library that fits the data (Chart.js, ECharts, React Flow, D3, Cytoscape, Leaflet, Tabulator, KaTeX…).
+4. **POST + cleanup** — Writes to `~/.genpage/report-<timestamp>.html`, POSTs to the local app, deletes the file. Logs to `~/.genpage/genpage.log`.
+5. **Render** — The GenPage App displays it in your browser, themed to your DaisyUI theme.
 
 ---
 
-## Theme and colors
+## 🌍 Works everywhere
 
-All colors are controlled by the `genpage` DaisyUI theme defined in the GenPage App. The skill only assigns semantic tokens (`text-primary`, `badge-success`, `bg-base-200`, etc.) — it never hardcodes color values. To change the palette, update the theme in the App.
+GenPage is **model-agnostic** and **client-agnostic**. One skill, every assistant.
+
+<div align="center">
+
+`Claude Code` · `Cursor` · `Windsurf` · `GitHub Copilot` · `Continue` · `Kiro`
+`Roo Code` · `Kilo Code` · `Codex` · `Qoder` · `Gemini` · `Trae`
+`OpenCode` · `CodeBuddy` · `Droid` · `Warp` · `Augment` · `Antigravity`
+
+</div>
+
+If your assistant supports skills, plugins, or custom instructions — GenPage works.
 
 ---
 
-## Directory structure
+## 🎨 What it can render
+
+GenPage picks the right tool for each shape of data — never more than one viz library per page.
+
+| You want to show… | GenPage uses |
+|---|---|
+| KPIs, deltas, status grids | Tailwind + DaisyUI stat cards |
+| Bar / line / pie / area | Chart.js |
+| Heatmap, sankey, treemap, gauge, gantt | ECharts |
+| Flowcharts, architecture diagrams, mind maps | React Flow + dagre auto-layout |
+| Network / dependency graphs | Cytoscape.js |
+| Maps, geo data | Leaflet |
+| Large sortable/filterable tables | Tabulator |
+| Math / equations | KaTeX |
+| Code with syntax highlighting | highlight.js |
+| Custom SVG, bespoke viz | D3.js |
+
+Pages are responsive, dark-mode aware, keyboard-navigable, and ship with theme-matched scrollbars. Reduced-motion is honored. WCAG AA contrast by default.
+
+---
+
+## 🎛️ Theming
+
+All colors flow from the `genpage` DaisyUI theme defined in the GenPage App. The skill assigns *semantic* tokens only (`text-primary`, `badge-success`, `bg-base-200`) — never hardcoded hex. Change the theme in the App, every report follows.
+
+---
+
+## 📁 Repository layout
 
 ```
 genpage/
@@ -82,23 +151,45 @@ genpage/
 │       │   └── plugin.json       # Claude Code plugin manifest
 │       └── skills/
 │           └── genpage/
-│               ├── SKILL.md      # Skill definition
+│               ├── SKILL.md           # Skill definition
+│               ├── references/        # Styling, accessibility, security, images, footer
 │               └── scripts/
-│                   └── post-to-result-hub.py  # POST script (Python stdlib only)
+│                   └── post-to-result-hub.py  # Python stdlib only
+├── evals/                        # Trigger-detection evals
 ├── README.md
+├── LICENSE
 └── skill.json                    # Multi-platform skill metadata
 ```
 
 ---
 
-## GenPage App
+## 🔒 Privacy & security
 
-The GenPage App is the local server that receives and renders reports. It binds to `127.0.0.1:5678` and applies the `genpage` DaisyUI theme.
-
-[https://github.com/nandzz/genpage](https://github.com/nandzz/genpage)
+- **100% local.** Reports POST to `127.0.0.1:5678`. Nothing leaves your machine.
+- **No telemetry.** No analytics, no tracking pixels, no third-party meta tags.
+- **No persistence by default.** The HTML file is deleted after POST.
+- **No secrets in pages.** The skill's reference docs explicitly forbid embedding tokens, env vars, or credentials.
 
 ---
 
-## License
+## 🤝 Contributing
 
-MIT © [Felipe Fernandes](https://github.com/nandzz)
+Issues and PRs welcome. The trigger evals live in [`evals/`](evals/) — if you've found a case where GenPage *should* fire but doesn't (or vice versa), add it there and open a PR.
+
+---
+
+## 📦 The GenPage App
+
+The local renderer: a tiny server bound to `127.0.0.1:5678` that applies the `genpage` DaisyUI theme to whatever HTML the skill sends.
+
+**→ [github.com/nandzz/genpage](https://github.com/nandzz/genpage)**
+
+---
+
+<div align="center">
+
+**Built by [Felipe Fernandes](https://github.com/nandzz)** · MIT License
+
+*If GenPage made your AI feel less like a chatbot and more like a tool, ⭐ the repo.*
+
+</div>
