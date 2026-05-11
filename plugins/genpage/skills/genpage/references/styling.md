@@ -2,11 +2,15 @@
 
 The page renders inside an iframe with no shared styles or scripts — every dependency must be inlined as a CDN tag.
 
-## Mandatory `<head>`
+**Stack is fixed.** Every page uses **Tailwind CSS v4 browser CDN + DaisyUI 5 prebuilt CSS + `data-theme`**. There is no fallback, no v3, no JS config, no plugin loading. All CDN URLs below are version-pinned — copy them verbatim, never substitute `@latest` or bump majors.
+
+## Mandatory `<head>` — copy verbatim
+
+Start every page with this exact block. Replace `<report title>`, `<one-line summary>`, and the `data-theme` value. Do not add `@plugin`, `@config`, or any `<script>tailwind.config = {...}</script>`.
 
 ```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="business">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,59 +20,87 @@ The page renders inside an iframe with no shared styles or scripts — every dep
   <meta property="og:description" content="<one-line summary>">
   <meta property="og:type" content="article">
   <title><report title> — GenPage</title>
-  <!-- chosen CDN tags here -->
+
+  <!-- Tailwind v4 browser build (utilities only — no plugins, no config) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.0.0"></script>
+
+  <!-- DaisyUI 5 prebuilt stylesheet (all themes baked in; switch via data-theme) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.0.0/daisyui.css">
 </head>
 ```
 
-`<title>` always follows `<report title> — GenPage`. No analytics, tracking pixels, or third-party meta tags.
+Rules:
+
+- `<title>` always follows `<report title> — GenPage`.
+- `data-theme` must be one of: `light`, `dark`, `business`, `corporate`, `night`. Omit the attribute to auto-pick `light`/`dark` from `prefers-color-scheme`.
+- No analytics, tracking pixels, or third-party meta tags.
+- Add CDN tags for chart / diagram / interactivity libraries **after** the DaisyUI link, using the pinned URLs in the tables below.
 
 ## Framework selection (model decides)
 
-Match the framework to the **shape of the content**, not to a "tier." Tailwind handles layout on every page; pick **one** specialised library per concern (one chart lib, one diagram lib, one interactivity lib). Every extra CDN is a network hop inside the iframe — don't load D3 *and* ECharts just because both could work.
+Match the framework to the **shape of the content**. Tailwind + DaisyUI handle layout on every page; pick **one** specialised library per concern (one chart lib, one diagram lib, one interactivity lib). Every extra CDN is a network hop inside the iframe — don't load D3 *and* ECharts just because both could work.
 
-### Layout & components (always)
+### Layout & components (always loaded — already in the head block above)
 
-| Need | Library | CDN |
+| Need | Library | Pinned CDN |
 |---|---|---|
-| Utility-first layout | Tailwind CSS | `https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4` |
-| Component classes (card, badge, stat, table, btn, alert, tabs) | DaisyUI | `https://cdn.jsdelivr.net/npm/daisyui@5/daisyui.css` |
-| Icons | Lucide | `https://unpkg.com/lucide@latest` |
+| Utility-first layout | Tailwind v4 browser | `https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.0.0` |
+| Component classes (card, badge, stat, table, btn, alert, tabs) + themes | DaisyUI 5 | `https://cdn.jsdelivr.net/npm/daisyui@5.0.0/daisyui.css` |
+| Icons | Lucide | `https://cdn.jsdelivr.net/npm/lucide@0.468.0` |
 
-Tailwind v4 browser build needs DaisyUI activated explicitly. Put this in `<head>` after the Tailwind script:
+### Tailwind v4 browser build — what you can and cannot do
 
-```html
-<style type="text/tailwindcss">
-  @plugin "daisyui" { themes: light --default, dark --prefersdark, business, corporate, night; }
-</style>
-```
+The v4 browser build is a **runtime utility compiler**. It only understands utility classes and `@theme`. If you include any of these the page renders unstyled with the console error *"The browser build does not support plugins or config files."*:
+
+- `@plugin "..."` (including `@plugin "daisyui"`)
+- `@config "..."`
+- `<script>tailwind.config = { ... }</script>`
+- `@tailwind base; @tailwind components; @tailwind utilities;` (v3 directives — not used in v4)
+
+What you may add inside `<style type="text/tailwindcss">`:
+
+- Design tokens via `@theme` only:
+
+  ```html
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: oklch(64% 0.18 250);
+      --font-display: 'Inter', system-ui, sans-serif;
+    }
+  </style>
+  ```
+
+DaisyUI 5 ships every theme inside the prebuilt stylesheet. Switching themes is just changing `data-theme` on `<html>` — there is nothing to activate, configure, or extend.
 
 ### Interactivity (pick at most one)
 
-| Need | Library | CDN |
+| Need | Library | Pinned CDN |
 |---|---|---|
 | Tabs, accordions, toggles | DaisyUI zero-JS patterns (`<details>`, radio tabs) — no library |
-| Show/hide, local state, simple bindings | Alpine.js | `https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js` |
-| Multi-view dashboard with shared state | React + ReactDOM | `https://unpkg.com/react@18/umd/react.production.min.js` + `https://unpkg.com/react-dom@18/umd/react-dom.production.min.js` |
+| Show/hide, local state, simple bindings | Alpine.js | `https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js` |
+| Multi-view dashboard with shared state | React + ReactDOM | `https://unpkg.com/react@18.3.1/umd/react.production.min.js` + `https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js` |
 
 ### Visualisation — choose by what you're rendering
 
-| If the content is… | Use | CDN |
+| If the content is… | Use | Pinned CDN |
 |---|---|---|
-| Bar / line / pie / area / scatter | Chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4` |
-| Heatmap, sankey, treemap, radar, gauge, candlestick, gantt | ECharts | `https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js` |
-| Declarative statistical charts from JSON | Vega-Lite | `https://cdn.jsdelivr.net/npm/vega@5` + `https://cdn.jsdelivr.net/npm/vega-lite@5` + `https://cdn.jsdelivr.net/npm/vega-embed@6` |
-| Flowcharts, processes, system maps, journey maps, mind maps (branched flows) | React Flow | `https://unpkg.com/@xyflow/react@12/dist/umd/index.js` + `https://unpkg.com/@xyflow/react@12/dist/style.css` (needs React + ReactDOM, plus `https://unpkg.com/dagre@0.8.5/dist/dagre.min.js` for auto-layout) |
-| Force-directed / network / dependency graphs | Cytoscape.js | `https://cdn.jsdelivr.net/npm/cytoscape@3/dist/cytoscape.min.js` |
-| Custom SVG, bespoke viz, geo projections | D3.js | `https://cdn.jsdelivr.net/npm/d3@7` |
-| Geographic data, points/regions on a map | Leaflet | `https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.js` + `https://cdn.jsdelivr.net/npm/leaflet@1/dist/leaflet.css` |
-| Large interactive data table (sort/filter/paginate) | Tabulator | `https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/js/tabulator.min.js` + `https://cdn.jsdelivr.net/npm/tabulator-tables@6/dist/css/tabulator.min.css` |
+| Bar / line / pie / area / scatter | Chart.js | `https://cdn.jsdelivr.net/npm/chart.js@4.4.6` |
+| Heatmap, sankey, treemap, radar, gauge, candlestick, gantt | ECharts | `https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js` |
+| Declarative statistical charts from JSON | Vega-Lite | `https://cdn.jsdelivr.net/npm/vega@5.30.0` + `https://cdn.jsdelivr.net/npm/vega-lite@5.21.0` + `https://cdn.jsdelivr.net/npm/vega-embed@6.26.0` |
+| Flowcharts, processes, system maps, journey maps, mind maps (branched flows) | React Flow | `https://unpkg.com/@xyflow/react@12.3.5/dist/umd/index.js` + `https://unpkg.com/@xyflow/react@12.3.5/dist/style.css` (needs React + ReactDOM, plus `https://unpkg.com/dagre@0.8.5/dist/dagre.min.js` for auto-layout) |
+| Force-directed / network / dependency graphs | Cytoscape.js | `https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js` |
+| Custom SVG, bespoke viz, geo projections | D3.js | `https://cdn.jsdelivr.net/npm/d3@7.9.0` |
+| Geographic data, points/regions on a map | Leaflet | `https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js` + `https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css` |
+| Large interactive data table (sort/filter/paginate) | Tabulator | `https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.0/dist/js/tabulator.min.js` + `https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.0/dist/css/tabulator.min.css` |
 
 ### Content extras
 
-| Need | Library | CDN |
+| Need | Library | Pinned CDN |
 |---|---|---|
-| Code snippets with syntax highlighting | highlight.js | `https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/highlight.min.js` + a theme CSS from the same package |
-| Math / equations (LaTeX) | KaTeX | `https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js` + `https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css` |
+| Code snippets with syntax highlighting | highlight.js | `https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js` + a theme CSS from the same package |
+| Math / equations (LaTeX) | KaTeX | `https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js` + `https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css` |
+
+> **Versions are locked.** Copy URLs verbatim. Do not change `@x.y.z` to `@x`, `@latest`, or any other tag — a floating version is the single most common cause of a page that worked yesterday breaking today. Bumps happen in the skill repo, behind a tested release.
 
 ### Decision rules
 
@@ -122,12 +154,12 @@ Every visual element must stay readable at the size it actually renders. If labe
 Needs React + ReactDOM + dagre. Renders to a `<div>` with built-in pan/zoom/minimap; nodes stay readable because the canvas can be larger than the viewport. **Do not use for linear sequences — use a timeline instead.**
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12/dist/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12.3.5/dist/style.css">
 <div id="flow" style="width:100%;height:520px"></div>
 <script type="module">
-  import React from 'https://esm.sh/react@18';
-  import { createRoot } from 'https://esm.sh/react-dom@18/client';
-  import { ReactFlow, Background, Controls, MiniMap } from 'https://esm.sh/@xyflow/react@12';
+  import React from 'https://esm.sh/react@18.3.1';
+  import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+  import { ReactFlow, Background, Controls, MiniMap } from 'https://esm.sh/@xyflow/react@12.3.5';
   import dagre from 'https://esm.sh/dagre@0.8.5';
 
   // Auto-layout with dagre so the model doesn't position nodes manually
@@ -182,7 +214,7 @@ Needs React + ReactDOM + dagre. Renders to a `<div>` with built-in pan/zoom/mini
 #### highlight.js
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/styles/github-dark.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css">
 <script>hljs.highlightAll();</script>
 <pre><code class="language-ts">const x: number = 1;</code></pre>
 ```
@@ -190,7 +222,7 @@ Needs React + ReactDOM + dagre. Renders to a `<div>` with built-in pan/zoom/mini
 #### KaTeX
 
 ```html
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body)"></script>
 <p>Inline: \(E = mc^2\). Block: $$\sum_{i=1}^{n} i = \tfrac{n(n+1)}{2}$$</p>
 ```
@@ -218,7 +250,7 @@ Default to dark for dashboards, light for prose/reports. Always provide both via
 <html lang="en" data-theme="dark">
 ```
 
-DaisyUI themes worth defaulting to: `light`, `dark`, `business`, `corporate`, `night`. Pick **one** — don't mix. With the `@plugin` config above, DaisyUI auto-applies `light`/`dark` based on `prefers-color-scheme` when you omit `data-theme`.
+DaisyUI themes worth defaulting to: `light`, `dark`, `business`, `corporate`, `night`. Pick **one** — don't mix. The prebuilt `daisyui.css` ships all themes; activate one with `data-theme` on `<html>`. Omit the attribute to let DaisyUI auto-apply `light`/`dark` based on `prefers-color-scheme`.
 
 ### Typography
 
