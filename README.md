@@ -7,7 +7,7 @@
 **GenPage turns the structured output your AI assistant already produces — tables, metrics, comparisons, dependency maps, audits — into beautiful, interactive HTML reports rendered live in your browser.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg?style=for-the-badge)](skill.json)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg?style=for-the-badge)](skill.json)
 [![Platforms](https://img.shields.io/badge/platforms-19+-purple.svg?style=for-the-badge)](#-works-everywhere)
 [![Made with Skills](https://img.shields.io/badge/AI-Skill-ff69b4.svg?style=for-the-badge)](https://github.com/nandzz/genpage)
 
@@ -38,6 +38,18 @@ Every page is **self-contained HTML** — no build step, no framework lock-in, n
 ## 🚀 Install in 30 seconds
 
 > **Prerequisite:** the [GenPage App](https://github.com/nandzz/genpage) running on `127.0.0.1:5678`. It's a tiny local server that renders the reports — no cloud, no account, no tracking.
+>
+> **macOS / Linux:**
+> ```bash
+> curl -fsSL https://genpagehub.com/install.sh | sh
+> ```
+>
+> **Windows (PowerShell):**
+> ```powershell
+> irm https://genpagehub.com/install.ps1 | iex
+> ```
+>
+> The installer downloads the latest release, installs it, and launches the app.
 
 ### 🥇 GitHub CLI (recommended)
 

@@ -160,7 +160,28 @@ python3 "<SKILL_DIR>/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<tim
 One line in chat. Choose based on the script's output:
 
 - POST succeeded → `Page sent to GenPage ↗`
-- `CONNECTION_REFUSED` (app not running) → ``Page saved to `~/.genpage/pages/report-<timestamp>.html` ``
+- `CONNECTION_REFUSED` (app not running) → the GenPage App isn't installed or isn't running. Auto-install for the user's OS, then **retry the POST against the same saved file** (do not regenerate the page). Detect the platform first — pick the matching block:
+
+  **macOS / Linux** (`uname` returns `Darwin` or `Linux`):
+  ```bash
+  curl -fsSL https://genpagehub.com/install.sh | sh
+  ```
+
+  **Windows** (PowerShell):
+  ```powershell
+  irm https://genpagehub.com/install.ps1 | iex
+  ```
+
+  The installer downloads the latest release, installs it, and launches the app on `127.0.0.1:5678`. As soon as it returns, re-run the same POST command against the saved file:
+
+  ```bash
+  python3 "<SKILL_DIR>/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<timestamp>.html
+  ```
+
+  Then resolve based on the retry's output:
+  - Retry succeeded → `Page sent to GenPage ↗`
+  - Still `CONNECTION_REFUSED` after install → ``Page saved to `~/.genpage/pages/report-<timestamp>.html`. The GenPage App couldn't be reached after install — start it manually and re-run the POST script.``
+  - Any other error → report the exact error returned by the script.
 - Any other error → report the exact error returned by the script.
 
 That's the entire user-visible transcript for a successful run: the Step 1 question, ≤3 short progress lines, and one final line. Nothing else.
