@@ -123,13 +123,18 @@ For everything below, read the relevant reference file:
 
 Read the file once, follow it, and don't re-read on subsequent runs in the same session.
 
-**Optional design data** — when the report would benefit from a non-default palette or font pair (branded report, themed dashboard, content with a clear mood like "financial", "wellness", "editorial"), consult `references/data/`:
+**Design data — pick a palette and font pair before writing HTML.** Every report has a domain (code audit, finance, travel, wellness, ops, editorial, security, etc.). Match the domain to a palette and a font pair from `references/data/` — this is the default path, not an escape hatch. The plain DaisyUI theme + Inter is the fallback only when no domain signal exists at all (e.g. a generic "list my files" request).
 
-- `colors.csv` — 161 industry-mapped palettes (`Product Type` column → palette tokens). Pick one whose `Product Type` or `Notes` matches the report's domain.
-- `typography.csv` — 57 Google Fonts pairings with `Mood/Style Keywords` and `CSS Import`. Drop the `CSS Import` line straight into `<head>`.
-- `ux-guidelines.csv` — 99 anti-patterns/best practices (Do / Don't / Severity). Skim for `High` severity rules relevant to your sections (tables, navigation, forms, accessibility).
+Order of operations:
 
-Don't load these files for every report — only when default Inter + DaisyUI theme isn't a good fit. Files are bundled under MIT from `nextlevelbuilder/ui-ux-pro-max-skill`; see `references/data/NOTICE.md`.
+1. **Name the domain in one word** (e.g. `finance`, `devtools`, `travel`, `healthcare`, `security`, `editorial`). If you can't, skip to defaults.
+2. **`colors.csv`** — 161 industry-mapped palettes. Grep the `Product Type` and `Notes` columns for your domain word; pick the first match. Use its tokens as DaisyUI CSS custom properties or Tailwind arbitrary values.
+3. **`typography.csv`** — 57 Google Fonts pairings with `Mood/Style Keywords` and `CSS Import`. Grep `Mood/Style Keywords` for the same domain or a mood word (serious, playful, technical, calm). Drop the `CSS Import` line straight into `<head>`.
+4. **`ux-guidelines.csv`** — 99 anti-patterns/best practices. Skim `High` severity rows relevant to the sections you're rendering (tables, navigation, forms, accessibility).
+
+Only skip steps 2–3 when the request has no domain signal **and** no mood signal. "Show me my failing tests" → devtools palette + technical font pair. "Plan my trip to Italy" → travel palette + editorial font pair. Don't default to bare DaisyUI just because it would render.
+
+Files are bundled under MIT from `nextlevelbuilder/ui-ux-pro-max-skill`; see `references/data/NOTICE.md`.
 
 ### Step 4 — Security check
 
