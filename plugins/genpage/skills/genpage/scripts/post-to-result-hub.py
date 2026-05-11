@@ -14,8 +14,9 @@ render endpoint.
 Prints 'ok' on success, 'CONNECTION_REFUSED' when the app is not running,
 or an error message otherwise.
 
-Temp files are stored in ~/.genpage/ and deleted after a successful POST.
-A log entry is appended to ~/.genpage/genpage.log for every run.
+Temp files are stored in ~/.genpage/pages/ and are kept after a successful
+POST so the user can re-open or re-send them. A log entry is appended to
+~/.genpage/genpage.log for every run.
 """
 import json
 import os
@@ -48,7 +49,6 @@ def main() -> None:
     ensure_genpage_dir()
     html = ""
     html_path = None
-    owned_file = False  # True if we should delete the file after posting
 
     # Prefer explicit file path input to avoid huge inline shell commands.
     if len(sys.argv) > 1:
@@ -61,8 +61,6 @@ def main() -> None:
             print(msg)
             log(msg)
             sys.exit(1)
-        # Only delete files that live inside ~/.genpage/ (written by the agent)
-        owned_file = os.path.abspath(html_path).startswith(os.path.abspath(GENPAGE_DIR))
     else:
         try:
             html = sys.stdin.read()
@@ -102,11 +100,6 @@ def main() -> None:
             if result.get("ok"):
                 print("ok")
                 log(f"ok — posted {len(encoded)} bytes")
-                if owned_file and html_path:
-                    try:
-                        os.remove(html_path)
-                    except OSError:
-                        pass
             else:
                 msg = f"error: {result.get('error')}"
                 print(msg)

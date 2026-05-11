@@ -145,7 +145,7 @@ Run through `references/security.md` before posting. If anything fails, fix the 
 The user already consented in Step 1. **Don't ask again.** Post directly:
 
 1. Write the page to `~/.genpage/pages/report-<timestamp>.html` using your file-writing tool (`Write`, `create_file`, etc.) — these auto-create missing parent directories. Don't prefix with `mkdir`, `ls`, `test -d`, or `touch`; they're noise.
-2. Run the POST script — it posts the file and deletes it on success:
+2. Run the POST script — it posts the file and keeps it on disk for later re-open / re-send:
 
 ```bash
 python3 "<SKILL_DIR>/scripts/post-to-result-hub.py" ~/.genpage/pages/report-<timestamp>.html

@@ -7,7 +7,7 @@
 **GenPage turns the structured output your AI assistant already produces — tables, metrics, comparisons, dependency maps, audits — into beautiful, interactive HTML reports rendered live in your browser.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg?style=for-the-badge)](skill.json)
+[![Version](https://img.shields.io/badge/version-1.6.1-blue.svg?style=for-the-badge)](skill.json)
 [![Platforms](https://img.shields.io/badge/platforms-19+-purple.svg?style=for-the-badge)](#-works-everywhere)
 [![Made with Skills](https://img.shields.io/badge/AI-Skill-ff69b4.svg?style=for-the-badge)](https://github.com/nandzz/genpage)
 
@@ -93,8 +93,8 @@ That's it. Next time your AI is about to produce a structured answer, it'll ask 
 └────────────────────┘     └──────────────────┘     └──────────────────┘
         ▲                          │                         │
         │                          ▼                         │
-        │                  ~/.genpage/*.html ──── POST ──────┘
-        │                  (deleted after send)
+        │                  ~/.genpage/pages/*.html ── POST ──┘
+        │                  (kept on disk after send)
         │
    "should this be
     a report?"
@@ -103,7 +103,7 @@ That's it. Next time your AI is about to produce a structured answer, it'll ask 
 1. **Trigger detection** — Fires when a response would naturally produce a table (3+ rows), grouped sections, metrics, comparisons, dependency maps, or diagrams. Trigger is the *shape of the answer*, not the wording of the question.
 2. **One-time consent** — Asks once per session: *"Visualize in GenPage?"* with a detail level (Lean / Standard / Deep).
 3. **HTML generation** — Builds a self-contained report using Tailwind CSS + DaisyUI, plus the *one* viz library that fits the data (Chart.js, ECharts, React Flow, D3, Cytoscape, Leaflet, Tabulator, KaTeX…).
-4. **POST + cleanup** — Writes to `~/.genpage/report-<timestamp>.html`, POSTs to the local app, deletes the file. Logs to `~/.genpage/genpage.log`.
+4. **POST** — Writes to `~/.genpage/pages/report-<timestamp>.html`, POSTs to the local app, and keeps the file on disk so you can re-open or re-send it. Logs to `~/.genpage/genpage.log`.
 5. **Render** — The GenPage App displays it in your browser.
 
 ---
@@ -173,7 +173,7 @@ genpage/
 
 - **100% local.** Reports POST to `127.0.0.1:5678`. Nothing leaves your machine.
 - **No telemetry.** No analytics, no tracking pixels, no third-party meta tags.
-- **No persistence by default.** The HTML file is deleted after POST.
+- **Local-only persistence.** HTML reports stay in `~/.genpage/pages/` on your machine — nothing is uploaded anywhere. Delete them whenever you want.
 - **No secrets in pages.** The skill's reference docs explicitly forbid embedding tokens, env vars, or credentials.
 
 ---
