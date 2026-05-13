@@ -1,7 +1,7 @@
 {
   "name": "genpage",
   "description": "Build and send a Nandz Space — a React .tsx mini-app (dashboard, report, planner, guide, tracker, or any structured visual experience) — to the local Nandz App, which compiles and mounts it. Requires the Nandz App (install via `curl -fsSL https://genpagehub.com/install.sh | sh` on macOS/Linux, or `irm https://genpagehub.com/install.ps1 | iex` on Windows).",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": {
     "name": "Felipe Fernandes"
   },

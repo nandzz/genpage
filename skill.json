@@ -2,7 +2,7 @@
   "name": "genpage",
   "displayName": "GenPage",
   "description": "Build and send a Nandz Space — a React mini-app (dashboard, report, planner, guide, tracker, or any structured visual experience) delivered as a .tsx bundle — to the local Nandz App, which compiles and mounts it. Every Space imports from a single shared package (@nandz/ui) on top of React 18 + shadcn/ui (Tailwind v4 + Radix UI + Recharts + Lucide). Requires the Nandz App (install via `curl -fsSL https://genpagehub.com/install.sh | sh` on macOS/Linux, or `irm https://genpagehub.com/install.ps1 | iex` on Windows).",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": "nandzz",
   "license": "MIT",
   "homepage": "https://github.com/nandzz/genpage",
