@@ -40,7 +40,7 @@
     "rationale": "'breakdown' + grouped findings — exact GenPage shape"
   },
   {
-    "query": "send this to genpage as a deep report",
+    "query": "send this to nandz as a deep report",
     "should_trigger": true,
     "rationale": "Explicit invocation"
   },

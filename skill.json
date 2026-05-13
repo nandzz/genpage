@@ -1,7 +1,7 @@
 {
   "name": "genpage",
   "displayName": "GenPage",
-  "description": "Converts any structured AI response — tables, metrics, dependency maps, comparisons, diagrams — into a self-contained interactive HTML report rendered by the local GenPage App. Uses Tailwind CSS, DaisyUI, Chart.js, and Mermaid. Requires the GenPage App (install via `curl -fsSL https://genpagehub.com/install.sh | sh` on macOS/Linux, or `irm https://genpagehub.com/install.ps1 | iex` on Windows).",
+  "description": "Build and send a Nandz Space — a React mini-app (dashboard, report, planner, guide, tracker, or any structured visual experience) delivered as a .tsx bundle — to the local Nandz App, which compiles and mounts it. Every Space imports from a single shared package (@nandz/ui) on top of React 18 + shadcn/ui (Tailwind v4 + Radix UI + Recharts + Lucide). Requires the Nandz App (install via `curl -fsSL https://genpagehub.com/install.sh | sh` on macOS/Linux, or `irm https://genpagehub.com/install.ps1 | iex` on Windows).",
   "version": "1.7.0",
   "author": "nandzz",
   "license": "MIT",
@@ -9,13 +9,14 @@
   "repository": "https://github.com/nandzz/genpage",
   "keywords": [
     "genpage",
+    "space",
     "report",
     "visualization",
-    "html",
+    "react",
+    "tsx",
     "dashboard",
     "chart",
-    "mermaid",
-    "daisyui",
+    "shadcn",
     "tailwind",
     "ai-skill",
     "structured-output"

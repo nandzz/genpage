@@ -1,6 +1,6 @@
 {
   "name": "genpage-marketplace",
-  "description": "Marketplace for the GenPage skill — converts structured AI responses into interactive HTML reports rendered by the local GenPage App.",
+  "description": "Marketplace for the GenPage skill — converts structured AI responses into Nandz Spaces (React .tsx mini-apps) compiled and rendered by the local Nandz App.",
   "owner": {
     "name": "Felipe Fernandes",
     "email": "nandzz@users.noreply.github.com"
@@ -8,19 +8,20 @@
   "plugins": [
     {
       "name": "genpage",
-      "source": "./plugins/genpage",
-      "description": "Converts any structured AI response — tables, metrics, dependency maps, comparisons, diagrams — into a self-contained interactive HTML report rendered by the local GenPage App.",
+      "source": "./plugins/nandz-app",
+      "description": "Build and send a Nandz Space — a React .tsx mini-app (dashboard, report, planner, guide, tracker, or any structured visual experience) — to the local Nandz App, which compiles and mounts it.",
       "version": "1.7.0",
       "category": "productivity",
       "keywords": [
         "genpage",
+        "space",
         "report",
         "visualization",
-        "html",
+        "react",
+        "tsx",
         "dashboard",
         "chart",
-        "mermaid",
-        "daisyui",
+        "shadcn",
         "tailwind",
         "ai-skill",
         "structured-output"

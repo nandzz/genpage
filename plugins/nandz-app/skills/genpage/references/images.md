@@ -26,14 +26,14 @@ When in doubt, use `object-contain`. The image is never cropped; whitespace appe
 
 ```html
 <!-- Card / hero / inline figure where cropping the subject is unacceptable -->
-<figure class="aspect-[4/3] w-full overflow-hidden rounded-xl bg-base-200">
+<figure className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted">
   <img
     src="https://upload.wikimedia.org/wikipedia/commons/..."
     alt="<descriptive alt>"
     loading="lazy"
     decoding="async"
-    class="w-full h-full object-contain"
-  >
+    className="w-full h-full object-contain"
+  />
 </figure>
 ```
 
@@ -51,14 +51,14 @@ If the layout *must* fill the box, use `object-cover` **with an explicit `object
 
 ```html
 <!-- Portrait tile that must fill a fixed ratio -->
-<figure class="aspect-square w-full overflow-hidden rounded-2xl bg-base-200">
+<figure className="aspect-square w-full overflow-hidden rounded-2xl bg-muted">
   <img
     src="https://upload.wikimedia.org/wikipedia/commons/..."
     alt="<descriptive alt>"
     loading="lazy"
     decoding="async"
-    class="w-full h-full object-cover object-top"
-  >
+    className="w-full h-full object-cover object-top"
+  />
 </figure>
 ```
 
@@ -70,8 +70,8 @@ Circular masks amplify bad framing — any miss shows as a sliced jaw or forehea
 <img
   src="..."
   alt="<name>"
-  class="w-16 h-16 rounded-full object-cover object-top ring-2 ring-base-300"
->
+  className="w-16 h-16 rounded-full object-cover object-top ring-2 ring-border"
+/>
 ```
 
 ### Hard rules
@@ -80,6 +80,6 @@ Circular masks amplify bad framing — any miss shows as a sliced jaw or forehea
 - **Never** force a fixed `width` *and* `height` (or a different `aspect-ratio`) on an `<img>` without `object-contain` or `object-cover` — the image will stretch or squash.
 - **Always** set `alt`. Decorative-only images get `alt=""`, never a missing attribute.
 - **Always** set `loading="lazy"` and `decoding="async"` on non-critical images.
-- **Always** give the wrapper a neutral background (`bg-base-200`) so `object-contain` letterboxing doesn't look like a layout bug.
+- **Always** give the wrapper a neutral background (`bg-muted`) so `object-contain` letterboxing doesn't look like a layout bug.
 - Prefer **portrait-friendly aspect ratios** (`aspect-[3/4]`, `aspect-square`) for portrait subjects. Don't drop a tall portrait into `aspect-video` and crop.
 - If a Wikimedia image's framing is unknown and the layout demands a tight crop, **pick `object-contain` and accept the letterboxing** — a whole face with bars beats half a face filling the box.
