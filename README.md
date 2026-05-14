@@ -7,7 +7,7 @@
 **GenPage turns the structured output your AI assistant already produces — tables, metrics, comparisons, dependency maps, audits — into beautiful, interactive HTML reports rendered live in your browser.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg?style=for-the-badge)](skill.json)
+[![Version](https://img.shields.io/badge/version-1.8.1-blue.svg?style=for-the-badge)](skill.json)
 [![Platforms](https://img.shields.io/badge/platforms-19+-purple.svg?style=for-the-badge)](#-works-everywhere)
 [![Made with Skills](https://img.shields.io/badge/AI-Skill-ff69b4.svg?style=for-the-badge)](https://github.com/nandzz/genpage)
 
